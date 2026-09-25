@@ -360,9 +360,17 @@ button {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
+@keyframes size-label-focus {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
 @supports (animation-timeline: view()) {
   .size-carousel-egg {
     animation: size-focus linear both;
+    animation-timeline: view(inline);
+  }
+  .size-carousel-label {
+    animation: size-label-focus linear both;
     animation-timeline: view(inline);
   }
   @media (prefers-reduced-motion: reduce) {

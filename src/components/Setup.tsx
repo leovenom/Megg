@@ -384,8 +384,6 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
     if (id !== value) onChange(id);
   };
 
-  const current = SIZES[sel];
-
   return (
     <div>
       <div className="relative">
@@ -420,31 +418,28 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
                 aria-label={live ? `${t.sizes[s.id]}, ${s.range}` : undefined}
                 tabIndex={live && j === sel ? 0 : -1}
                 onClick={() => pick(k)}
-                className="size-carousel-item press flex h-[84px] shrink-0 items-end justify-center rounded-chip pb-3 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+                className="size-carousel-item press flex shrink-0 flex-col items-center rounded-chip pb-2.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
                 style={{ width: ITEM }}
               >
-                <span className="size-carousel-egg block">
-                  <Egg size={30 + j * 4} variant={j} className="block" />
+                <span className="flex h-[76px] items-end pb-1.5">
+                  <span className="size-carousel-egg block">
+                    <Egg size={30 + j * 4} variant={j} className="block" />
+                  </span>
+                </span>
+                <span className="size-carousel-label flex flex-col items-center">
+                  <span
+                    className={`whitespace-nowrap text-micro font-medium leading-tight ${
+                      j === sel ? "text-fg" : "text-fg-muted"
+                    }`}
+                  >
+                    {t.sizes[s.id]}
+                  </span>
+                  <span className="whitespace-nowrap text-micro tabular-nums text-fg-subtle">{s.range}</span>
                 </span>
               </button>
             );
           })}
         </div>
-      </div>
-      <div aria-hidden className="relative mt-2.5 flex h-9 justify-center overflow-hidden">
-        <AnimatePresence initial={false} mode="popLayout">
-          <motion.div
-            key={current.id}
-            initial={{ opacity: 0, transform: "translateY(6px)" }}
-            animate={{ opacity: 1, transform: "translateY(0px)" }}
-            exit={{ opacity: 0, transform: "translateY(-6px)", transition: { duration: 0.12, ease: [0.23, 1, 0.32, 1] } }}
-            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
-            className="flex flex-col items-center"
-          >
-            <span className="text-sm font-medium leading-tight">{t.sizes[current.id]}</span>
-            <span className="text-micro tabular-nums text-fg-subtle">{current.range}</span>
-          </motion.div>
-        </AnimatePresence>
       </div>
     </div>
   );
