@@ -6,8 +6,8 @@
 
 const DONE_TAG = "megg-done";
 const ARTWORK: MediaImage[] = [
-  { src: "/icons/timer.png", sizes: "512x512", type: "image/png" },
   { src: "/icons/192.png", sizes: "192x192", type: "image/png" },
+  { src: "/icons/512.png", sizes: "512x512", type: "image/png" },
 ];
 
 let keepAlive: HTMLAudioElement | null = null;
