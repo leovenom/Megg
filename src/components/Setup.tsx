@@ -118,7 +118,7 @@ export function Setup({
         <AnimatePresence initial={false}>
           {!choice.fridge && (
             <motion.div {...expand} className="overflow-hidden">
-              <div className="pt-5">
+              <div className="pb-4 pt-5">
                 <div className="mb-2 flex items-baseline justify-between">
                   <span className="text-sm text-fg-muted">Temperatura ambiente</span>
                   <span className="font-display text-xl tabular-nums">
