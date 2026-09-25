@@ -1,30 +1,26 @@
 "use client";
 
 import { motion, useMotionValue } from "motion/react";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { DONENESS, formatTime, type DonenessId } from "@/lib/eggs";
+import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
+import { formatTime, type DonenessId } from "@/lib/eggs";
+import { useT } from "@/lib/i18n";
 import { Egg, eggOutline } from "./Egg";
 
 type Milestone = { id: DonenessId; seconds: number };
 
-const BUBBLES = Array.from({ length: 22 }, (_, i) => ({
-  left: 6 + ((i * 41) % 88),
-  size: 4 + ((i * 7) % 10),
-  dur: 2 + ((i * 13) % 10) * 0.22,
-  delay: (i * 0.61) % 4,
-  rise: 130 + ((i * 29) % 90),
-  drift: ((i % 5) - 2) * 3,
-}));
-
-const POPS = [
-  { x: 22, y: 26, size: 14, dur: 2.6, delay: 0.3 },
-  { x: 74, y: 20, size: 12, dur: 3.1, delay: 1.4 },
-  { x: 14, y: 58, size: 10, dur: 2.9, delay: 2.1 },
-  { x: 86, y: 52, size: 16, dur: 3.4, delay: 0.8 },
-  { x: 30, y: 84, size: 12, dur: 2.7, delay: 1.8 },
-  { x: 70, y: 86, size: 14, dur: 3.2, delay: 2.6 },
-  { x: 50, y: 10, size: 10, dur: 2.8, delay: 0.1 },
-];
+const BUBBLES = Array.from({ length: 12 }, (_, i) => {
+  const size = 3 + ((i * 5) % 8);
+  const ring = size * 2.2;
+  return {
+    left: 8 + ((i * 37) % 84),
+    size,
+    ring,
+    dur: 2.4 + ((i * 7) % 6) * 0.35,
+    delay: (i * 0.83) % 4,
+    rise: 110 + ((i * 23) % 80),
+    drift: ((i % 5) - 2) * 2.5,
+  };
+});
 
 const EGG_VARIANT = 3;
 const EGG_OUTLINE = eggOutline(EGG_VARIANT);
@@ -46,6 +42,7 @@ export function Timer({
 }) {
   const [secondsLeft, setSecondsLeft] = useState(total);
   const [paused, setPaused] = useState(false);
+  const t = useT();
   const progress = useMotionValue(0);
   const remainingMs = useRef(total * 1000);
   const doneRef = useRef(onDone);
@@ -86,12 +83,12 @@ export function Timer({
   const elapsed = total - secondsLeft;
   const reached = milestones.filter((m) => elapsed >= m.seconds).at(-1);
   const stage = paused
-    ? "Pausado"
+    ? t.paused
     : reached
-      ? `Gema ${DONENESS.find((d) => d.id === reached.id)!.name.toLowerCase()}`
+      ? t.yolk[reached.id]
       : elapsed < total * 0.3
-        ? "A clara está firmando…"
-        : "A gema começa a engrossar…";
+        ? t.whiteSetting
+        : t.yolkThickening;
 
   return (
     <div
@@ -102,7 +99,7 @@ export function Timer({
         <button
           onClick={onCancel}
           className="press grid size-10 place-items-center rounded-full bg-sunken text-lg text-fg/60"
-          aria-label="Cancelar"
+          aria-label={t.cancel}
         >
           ×
         </button>
@@ -131,14 +128,12 @@ export function Timer({
           />
         </svg>
 
-        <div className="pot absolute inset-[30px] rounded-full">
-          <div className="pot-water absolute inset-3.5 overflow-hidden rounded-full">
-            <div className="pot-caustics anim-caustic absolute -inset-[15%]" />
-            <div className="pot-egg-shadow absolute left-[24%] top-[58%] h-[22%] w-[60%]" />
-            {BUBBLES.map((b, i) => (
+        <div className="water absolute inset-[34px] overflow-hidden rounded-full">
+          <div className="water-egg-shadow absolute left-[22%] top-[68%] h-[20%] w-[60%]" />
+          {BUBBLES.map((b, i) => (
+            <Fragment key={i}>
               <span
-                key={i}
-                className="pot-bubble anim-bubble absolute rounded-full"
+                className="water-bubble anim-bubble absolute rounded-full"
                 style={
                   {
                     left: `${b.left}%`,
@@ -152,33 +147,24 @@ export function Timer({
                   } as CSSProperties
                 }
               />
-            ))}
-            {POPS.map((p, i) => (
               <span
-                key={i}
-                className="pot-ripple anim-pop absolute rounded-full"
+                className="water-ripple anim-pop absolute rounded-full"
                 style={{
-                  left: `${p.x}%`,
-                  top: `${p.y}%`,
-                  width: p.size,
-                  height: p.size * 0.6,
-                  animationDuration: `${p.dur}s`,
-                  animationDelay: `${p.delay}s`,
+                  left: `${b.left}%`,
+                  bottom: b.rise - b.size / 2 - b.ring / 4,
+                  marginLeft: (b.size - b.ring) / 2,
+                  width: b.ring,
+                  height: b.ring / 2,
+                  animationDuration: `${b.dur}s`,
+                  animationDelay: `${b.delay}s`,
                 }}
               />
-            ))}
-            {[0, 1.5].map((delay) => (
-              <span
-                key={delay}
-                className="pot-ripple anim-ripple absolute left-1/2 top-[58%] -ml-[60px] -mt-[18px] h-9 w-[120px] rounded-full"
-                style={{ animationDelay: `${delay}s` }}
-              />
-            ))}
-            <div className="pot-glare absolute inset-0" />
-          </div>
+            </Fragment>
+          ))}
+          <div className="water-glare absolute inset-0" />
         </div>
 
-        <div className="anim-bob relative">
+        <div className="anim-float relative">
           <Egg size={120} variant={EGG_VARIANT} className="block" />
           <svg viewBox="0 0 100 130" className="absolute inset-0 size-full" aria-hidden>
             <defs>
@@ -186,17 +172,17 @@ export function Timer({
                 <path d={EGG_OUTLINE.d} transform={EGG_OUTLINE.tilt ? `rotate(${EGG_OUTLINE.tilt} 50 80)` : undefined} />
               </clipPath>
               <linearGradient id="egg-water" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" className="water-surface" stopOpacity="0.4" />
-                <stop offset="100%" className="water-deep" stopOpacity="0.7" />
+                <stop offset="0%" className="water-surface" stopOpacity="0.3" />
+                <stop offset="100%" className="water-deep" stopOpacity="0.5" />
               </linearGradient>
             </defs>
             <g clipPath="url(#egg-submerged)">
-              <rect x="0" y="86" width="100" height="44" fill="url(#egg-water)" />
+              <rect x="0" y="19" width="100" height="111" fill="url(#egg-water)" />
               <path
-                d="M0 86 Q12 83.5 25 86 T50 86 T75 86 T100 86"
+                d="M0 19 Q12 17.5 25 19 T50 19 T75 19 T100 19"
                 fill="none"
-                strokeWidth="1.2"
-                className="stroke-white/60"
+                strokeWidth="1"
+                className="stroke-white/50"
               />
             </g>
           </svg>
@@ -237,7 +223,7 @@ export function Timer({
                     pos > 0.9 ? "-right-1" : "left-1/2 -translate-x-1/2"
                   }`}
                 >
-                  {DONENESS.find((d) => d.id === m.id)!.name}
+                  {t.doneness[m.id].name}
                 </span>
               </div>
             );
@@ -250,7 +236,7 @@ export function Timer({
           onClick={() => setPaused((p) => !p)}
           className="press rounded-full bg-card px-8 py-3.5 text-sm font-medium shadow-soft"
         >
-          {paused ? "Continuar" : "Pausar"}
+          {paused ? t.resume : t.pause}
         </button>
       </div>
     </div>
