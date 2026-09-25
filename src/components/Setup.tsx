@@ -44,8 +44,8 @@ export function Setup({
   const set = (patch: Partial<Choice>) => onChange({ ...choice, ...patch });
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-36 pt-8">
-      <header className="mb-8 flex items-center gap-3">
+    <div className="mx-auto flex h-full w-full max-w-md flex-col overflow-hidden">
+      <header className="mb-4 flex shrink-0 items-center gap-3 px-5 pt-[max(1.25rem,env(safe-area-inset-top))]">
         <span className="relative block h-[39px] w-[30px] shrink-0">
           <span className="absolute left-0 top-0 origin-top-left scale-50">
             <span className="anim-hop block origin-bottom" style={{ animationIterationCount: 3 }}>
@@ -82,6 +82,7 @@ export function Setup({
         </div>
       </header>
 
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
       <Section title={t.sizeTitle}>
         <SizeCarousel value={choice.size} onChange={(size) => set({ size })} />
       </Section>
@@ -194,20 +195,19 @@ export function Setup({
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-page via-page to-page/0 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-8">
-        <div className="mx-auto max-w-md">
-          <p className="mb-3 text-center text-xs text-fg-subtle">
-            {t.startHint}
-          </p>
-          <button
-            onClick={onStart}
-            className="press flex w-full items-center justify-between rounded-full bg-inverse px-7 py-4 text-on-inverse shadow-lift"
-          >
-            <span className="text-base font-medium">{t.start}</span>
-            <span className="font-display text-2xl tabular-nums">{formatTime(total)}</span>
-          </button>
-        </div>
+      <div className="shrink-0 bg-page px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-12px_24px_-8px_rgb(60_40_20/0.08)]">
+        <p className="mb-2.5 text-center text-xs text-fg-subtle">
+          {t.startHint}
+        </p>
+        <button
+          onClick={onStart}
+          className="press flex w-full items-center justify-between rounded-full bg-inverse px-7 py-4 text-on-inverse shadow-lift"
+        >
+          <span className="text-base font-medium">{t.start}</span>
+          <span className="font-display text-2xl tabular-nums">{formatTime(total)}</span>
+        </button>
       </div>
     </div>
   );
