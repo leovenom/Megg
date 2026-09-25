@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   DONENESS,
@@ -48,9 +48,23 @@ export function Setup({
       <header className="mb-8 flex items-center gap-3">
         <span className="relative block h-[39px] w-[30px] shrink-0">
           <span className="absolute left-0 top-0 origin-top-left scale-50">
-            <span className="anim-hop block origin-bottom" style={{ animationIterationCount: 3 }}>
-              <Egg size={60} face />
-            </span>
+            <MotionConfig reducedMotion="never">
+              <motion.span
+                className="block origin-bottom"
+                animate={{
+                  transform: [
+                    "translate3d(0,0,0) scale(1.06, 0.92)",
+                    "translate3d(0,-8px,0) scale(0.97, 1.05)",
+                    "translate3d(0,-22px,0) scale(1, 1)",
+                    "translate3d(0,-3px,0) scale(0.98, 1.03)",
+                    "translate3d(0,0,0) scale(1.06, 0.92)",
+                  ],
+                }}
+                transition={{ duration: 0.8, repeat: 2, ease: "easeInOut", times: [0, 0.15, 0.5, 0.88, 1] }}
+              >
+                <Egg size={60} face />
+              </motion.span>
+            </MotionConfig>
           </span>
         </span>
         <div>
