@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue } from "motion/react";
-import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
   canNotify,
   pauseKeepAlive,
@@ -18,17 +18,16 @@ import { Egg, eggOutline } from "./Egg";
 
 type Milestone = { id: DonenessId; seconds: number };
 
-const BUBBLES = Array.from({ length: 12 }, (_, i) => {
-  const size = 3 + ((i * 5) % 8);
-  const ring = size * 2.2;
+const BUBBLES = Array.from({ length: 16 }, (_, i) => {
+  const size = 7 + ((i * 5) % 9);
+  const ring = size * 2.4;
   return {
-    left: 8 + ((i * 37) % 84),
+    left: 6 + ((i * 31) % 86),
     size,
     ring,
-    dur: 2.4 + ((i * 7) % 6) * 0.35,
-    delay: (i * 0.83) % 4,
-    rise: 110 + ((i * 23) % 80),
-    drift: ((i % 5) - 2) * 2.5,
+    dur: 2.2 + ((i * 7) % 6) * 0.32,
+    delay: (i * 0.47) % 3.2,
+    rise: 90 + ((i * 19) % 70),
   };
 });
 
@@ -180,7 +179,7 @@ export function Timer({
   return (
     <div
       data-paused={paused || undefined}
-      className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6"
+      className="mx-auto flex h-[100svh] w-full max-w-md flex-col items-center overflow-hidden px-5 pt-[max(1.25rem,env(safe-area-inset-top))]"
     >
       <div className="flex w-full justify-between">
         <button
@@ -194,7 +193,7 @@ export function Timer({
         <span className="size-10" />
       </div>
 
-      <div className="relative mt-10 grid size-[300px] place-items-center">
+      <div className="relative mt-4 grid size-[min(300px,46svh)] place-items-center">
         <svg viewBox="0 0 300 300" className="absolute inset-0 -rotate-90">
           <defs>
             <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
@@ -219,25 +218,31 @@ export function Timer({
           {BUBBLES.map((b, i) => (
             <Fragment key={i}>
               <span
-                className="water-bubble anim-bubble absolute rounded-full"
-                style={
-                  {
-                    left: `${b.left}%`,
-                    bottom: -b.size,
+                className="anim-bubble-rise absolute"
+                style={{
+                  left: `${b.left}%`,
+                  bottom: 0,
+                  width: b.size,
+                  height: b.rise,
+                  animationDuration: `${b.dur}s`,
+                  animationDelay: `${b.delay}s`,
+                }}
+              >
+                <span
+                  className="water-bubble anim-bubble-fade absolute bottom-0 left-0 rounded-full"
+                  style={{
                     width: b.size,
                     height: b.size,
                     animationDuration: `${b.dur}s`,
                     animationDelay: `${b.delay}s`,
-                    "--rise": `${b.rise}px`,
-                    "--drift": `${b.drift}px`,
-                  } as CSSProperties
-                }
-              />
+                  }}
+                />
+              </span>
               <span
                 className="water-ripple anim-pop absolute rounded-full"
                 style={{
                   left: `${b.left}%`,
-                  bottom: b.rise - b.size / 2 - b.ring / 4,
+                  bottom: b.rise - b.ring / 4,
                   marginLeft: (b.size - b.ring) / 2,
                   width: b.ring,
                   height: b.ring / 2,
@@ -279,7 +284,7 @@ export function Timer({
         </div>
       </div>
 
-      <div className="mt-8 text-center">
+      <div className="mt-5 text-center">
         <div className="font-display text-7xl tabular-nums tracking-tight">{formatTime(secondsLeft)}</div>
         <motion.div
           key={stage}
@@ -292,7 +297,7 @@ export function Timer({
         </motion.div>
       </div>
 
-      <div className="mt-8 w-full px-2">
+      <div className="mt-6 w-full px-2">
         <div className="relative h-1.5 rounded-full bg-sunken">
           <motion.div
             className="absolute inset-0 origin-left rounded-full bg-gradient-to-r from-accent-from to-accent-to"
@@ -321,11 +326,11 @@ export function Timer({
         </div>
       </div>
 
-      <div className="mt-auto flex flex-col items-center gap-4 pt-12">
+      <div className="mt-auto flex w-full shrink-0 flex-col items-center gap-2 bg-page pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         {hint && <p className="max-w-60 text-center text-xs text-fg-subtle">{t.keepScreenOn}</p>}
         <button
           onClick={togglePause}
-          className="press rounded-full bg-card px-8 py-3.5 text-sm font-medium shadow-soft"
+          className="press w-full max-w-56 rounded-full bg-card py-3.5 text-sm font-medium shadow-soft"
         >
           {paused ? t.resume : t.pause}
         </button>

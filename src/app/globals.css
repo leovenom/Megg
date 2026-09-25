@@ -138,8 +138,8 @@
   background: radial-gradient(closest-side, color-mix(in oklab, var(--water-shadow) 45%, transparent), transparent);
 }
 .water-bubble {
-  background: radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.8) 0 18%, rgb(255 255 255 / 0.15) 45%, transparent 70%);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
+  background: radial-gradient(circle at 32% 28%, #fff 0 22%, rgb(255 255 255 / 0.55) 48%, rgb(255 255 255 / 0.12) 72%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55);
 }
 .water-ripple {
   border: 1px solid rgb(255 255 255 / 0.4);
@@ -148,9 +148,22 @@
   stop-color: var(--water-tint);
 }
 
-.anim-bubble {
-  opacity: 0;
-  animation: bubble linear infinite;
+.anim-bubble-rise,
+.anim-bubble-fade,
+.anim-float,
+.anim-wander,
+.anim-wave,
+.anim-swell,
+.anim-lap {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.anim-bubble-rise {
+  animation: bubble-rise linear infinite;
+  will-change: transform;
+}
+.anim-bubble-fade {
+  animation: bubble-fade linear infinite;
 }
 .anim-pop {
   opacity: 0;
@@ -158,9 +171,11 @@
 }
 .anim-float {
   animation: float 3.2s ease-in-out infinite;
+  will-change: transform;
 }
 .anim-wander {
   animation: wander 8.4s ease-in-out infinite;
+  will-change: transform;
 }
 .anim-wave {
   animation: wave 4.6s ease-in-out infinite;
@@ -183,7 +198,8 @@
 .anim-twinkle {
   animation: twinkle 1.4s ease-in-out infinite;
 }
-[data-paused] .anim-bubble,
+[data-paused] .anim-bubble-rise,
+[data-paused] .anim-bubble-fade,
 [data-paused] .anim-pop,
 [data-paused] .anim-float,
 [data-paused] .anim-wander,
@@ -194,15 +210,16 @@
   animation-play-state: paused;
 }
 
-/* --rise is the travel distance, --drift the sideways wobble; both set per bubble.
-   A bubble reaches the top at 90%, exactly when its paired .anim-pop ring appears. */
-@keyframes bubble {
-  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
-  12% { opacity: 0.7; }
-  40% { transform: translate(var(--drift), calc(var(--rise) * -0.44)) scale(0.85); }
-  70% { transform: translate(calc(var(--drift) * -0.6), calc(var(--rise) * -0.78)) scale(1); }
-  86% { opacity: 0.6; }
-  90%, 100% { transform: translate(0, calc(var(--rise) * -1)) scale(1.1); opacity: 0; }
+/* Rise uses the track's own height (no CSS vars in keyframes — Safari iOS drops those). */
+@keyframes bubble-rise {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(0, -100%, 0); }
+}
+@keyframes bubble-fade {
+  0% { opacity: 0; transform: scale(0.55); }
+  14% { opacity: 0.95; transform: scale(0.9); }
+  78% { opacity: 0.8; }
+  100% { opacity: 0; transform: scale(1.15); }
 }
 
 @keyframes pop {
@@ -267,7 +284,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .anim-bubble,
+  .anim-bubble-rise,
+  .anim-bubble-fade,
   .anim-pop,
   .anim-float,
   .anim-wander,
