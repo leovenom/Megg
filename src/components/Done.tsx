@@ -64,7 +64,7 @@ export function Done({
   }, [t.doneTitle, label]);
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-md flex-col items-center overflow-hidden px-5 pt-16 text-center">
+    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-16 text-center">
       <MotionConfig reducedMotion="never">
         <div className="relative grid h-[320px] w-full place-items-center">
           <motion.div
@@ -121,7 +121,7 @@ export function Done({
 
       <button
         onClick={onReset}
-        className="press mb-[max(1rem,env(safe-area-inset-bottom))] mt-auto w-full shrink-0 rounded-full bg-inverse py-4 text-base font-medium text-on-inverse shadow-lift"
+        className="press mt-auto w-full rounded-full bg-inverse py-4 text-base font-medium text-on-inverse shadow-lift"
       >
         {t.stopAlarm}
       </button>

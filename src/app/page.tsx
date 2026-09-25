@@ -56,21 +56,6 @@ function App() {
 
   useEffect(() => registerServiceWorker(), []);
 
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const sync = () => {
-      document.documentElement.style.setProperty("--app-height", `${vv.height}px`);
-    };
-    sync();
-    vv.addEventListener("resize", sync);
-    vv.addEventListener("scroll", sync);
-    return () => {
-      vv.removeEventListener("resize", sync);
-      vv.removeEventListener("scroll", sync);
-    };
-  }, []);
-
   const updateChoice = (c: Choice) => {
     setChoice(c);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
@@ -91,10 +76,10 @@ function App() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="h-[var(--app-height,100svh)] overflow-hidden bg-page text-fg">
+      <main className="min-h-dvh overflow-x-hidden bg-page text-fg">
         <AnimatePresence mode="wait">
           {screen === "setup" && (
-            <motion.div key="setup" className="h-full" {...page}>
+            <motion.div key="setup" {...page}>
               <Setup
                 choice={choice}
                 onChange={updateChoice}
@@ -108,7 +93,7 @@ function App() {
             </motion.div>
           )}
           {screen === "timer" && (
-            <motion.div key="timer" className="h-full" {...page}>
+            <motion.div key="timer" {...page}>
               <Timer
                 total={total}
                 subtitle={subtitle}
@@ -122,7 +107,7 @@ function App() {
             </motion.div>
           )}
           {screen === "done" && (
-            <motion.div key="done" className="h-full" {...page}>
+            <motion.div key="done" {...page}>
               <Done
                 doneness={choice.doneness}
                 label={`${t.yolk[choice.doneness]} · ${subtitle}`}

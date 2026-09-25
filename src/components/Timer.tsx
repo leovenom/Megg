@@ -179,7 +179,7 @@ export function Timer({
   return (
     <div
       data-paused={paused || undefined}
-      className="mx-auto flex h-full w-full max-w-md flex-col items-center overflow-hidden px-5 pt-[max(1.25rem,env(safe-area-inset-top))]"
+      className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6"
     >
       <div className="flex w-full justify-between">
         <button
@@ -326,11 +326,11 @@ export function Timer({
         </div>
       </div>
 
-      <div className="mt-auto flex w-full shrink-0 flex-col items-center gap-2 bg-page pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="mt-auto flex flex-col items-center gap-4 pt-12">
         {hint && <p className="max-w-60 text-center text-xs text-fg-subtle">{t.keepScreenOn}</p>}
         <button
           onClick={togglePause}
-          className="press w-full max-w-56 rounded-full bg-card py-3.5 text-sm font-medium shadow-soft"
+          className="press rounded-full bg-card px-8 py-3.5 text-sm font-medium shadow-soft"
         >
           {paused ? t.resume : t.pause}
         </button>
