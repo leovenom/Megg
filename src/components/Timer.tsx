@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue } from "motion/react";
+import { MotionConfig, motion, useMotionValue } from "motion/react";
 import { Fragment, useEffect, useRef, useState } from "react";
 import {
   canNotify,
@@ -214,74 +214,111 @@ export function Timer({
           />
         </svg>
 
-        <div className="water absolute inset-[34px] overflow-hidden rounded-full">
-          {BUBBLES.map((b, i) => (
-            <Fragment key={i}>
-              <span
-                className="anim-bubble-rise absolute"
-                style={{
-                  left: `${b.left}%`,
-                  bottom: 0,
-                  width: b.size,
-                  height: b.rise,
-                  animationDuration: `${b.dur}s`,
-                  animationDelay: `${b.delay}s`,
-                }}
-              >
-                <span
-                  className="water-bubble anim-bubble-fade absolute bottom-0 left-0 rounded-full"
-                  style={{
-                    width: b.size,
-                    height: b.size,
-                    animationDuration: `${b.dur}s`,
-                    animationDelay: `${b.delay}s`,
-                  }}
+        <MotionConfig reducedMotion="never">
+          <div className="water absolute inset-[34px] overflow-hidden rounded-full">
+            {BUBBLES.map((b, i) => (
+              <Fragment key={i}>
+                <motion.span
+                  className="water-bubble absolute rounded-full"
+                  style={{ left: `${b.left}%`, bottom: 0, width: b.size, height: b.size }}
+                  animate={
+                    paused
+                      ? { transform: "translate3d(0,0,0) scale(0.7)", opacity: 0.35 }
+                      : {
+                          transform: [
+                            "translate3d(0,0,0) scale(0.55)",
+                            `translate3d(0,-${Math.round(b.rise * 0.45)}px,0) scale(0.9)`,
+                            `translate3d(0,-${b.rise}px,0) scale(1.12)`,
+                          ],
+                          opacity: [0, 0.95, 0],
+                        }
+                  }
+                  transition={
+                    paused
+                      ? { duration: 0.2 }
+                      : { duration: b.dur, delay: b.delay, repeat: Infinity, ease: "linear" }
+                  }
                 />
-              </span>
-              <span
-                className="water-ripple anim-pop absolute rounded-full"
-                style={{
-                  left: `${b.left}%`,
-                  bottom: b.rise - b.ring / 4,
-                  marginLeft: (b.size - b.ring) / 2,
-                  width: b.ring,
-                  height: b.ring / 2,
-                  animationDuration: `${b.dur}s`,
-                  animationDelay: `${b.delay}s`,
-                }}
-              />
-            </Fragment>
-          ))}
-          <div className="water-glare absolute inset-0" />
-        </div>
+                <motion.span
+                  className="water-ripple absolute rounded-full"
+                  style={{
+                    left: `${b.left}%`,
+                    bottom: b.rise - b.ring / 4,
+                    marginLeft: (b.size - b.ring) / 2,
+                    width: b.ring,
+                    height: b.ring / 2,
+                  }}
+                  animate={paused ? { opacity: 0, scale: 0.4 } : { opacity: [0, 0, 0.55, 0], scale: [0.3, 0.3, 1.3, 1.5] }}
+                  transition={
+                    paused
+                      ? { duration: 0.2 }
+                      : { duration: b.dur, delay: b.delay, repeat: Infinity, ease: "linear", times: [0, 0.86, 0.92, 1] }
+                  }
+                />
+              </Fragment>
+            ))}
+            <div className="water-glare absolute inset-0" />
+          </div>
 
-        <div className="anim-wander relative">
-          <div className="water-egg-shadow absolute -bottom-3 left-1/2 h-9 w-[130px] -translate-x-1/2" />
-          <div className="anim-float relative">
-            <Egg size={120} variant={EGG_VARIANT} className="block" />
-            <svg viewBox="0 0 100 130" className="absolute inset-0 size-full" aria-hidden>
-              <defs>
-                <clipPath id="egg-submerged">
-                  <path d={EGG_OUTLINE.d} transform={EGG_OUTLINE.tilt ? `rotate(${EGG_OUTLINE.tilt} 50 80)` : undefined} />
-                </clipPath>
-                <linearGradient id="egg-water" x1="0" y1="0" x2="0" y2="130" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" className="water-tint" stopOpacity="0.2" />
-                  <stop offset="100%" className="water-tint" stopOpacity="0.5" />
-                </linearGradient>
-              </defs>
-              <g clipPath="url(#egg-submerged)">
-                <g className="anim-wave">
-                  <g className="anim-swell">
-                    <g className="anim-lap">
+          <motion.div
+            className="relative"
+            animate={
+              paused
+                ? { transform: "translate3d(0,0,0) rotate(0deg)" }
+                : {
+                    transform: [
+                      "translate3d(0,0,0) rotate(0deg)",
+                      "translate3d(8px,-7px,0) rotate(2.4deg)",
+                      "translate3d(2px,6px,0) rotate(0.4deg)",
+                      "translate3d(-9px,-3px,0) rotate(-2.8deg)",
+                      "translate3d(0,0,0) rotate(0deg)",
+                    ],
+                  }
+            }
+            transition={paused ? { duration: 0.25 } : { duration: 8.4, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <div className="water-egg-shadow absolute -bottom-3 left-1/2 h-9 w-[130px] -translate-x-1/2" />
+            <motion.div
+              className="relative"
+              animate={
+                paused
+                  ? { transform: "translate3d(0,0,0)" }
+                  : { transform: ["translate3d(0,0,0)", "translate3d(0,-7px,0)", "translate3d(0,0,0)"] }
+              }
+              transition={paused ? { duration: 0.25 } : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Egg size={120} variant={EGG_VARIANT} className="block" />
+              <svg viewBox="0 0 100 130" className="absolute inset-0 size-full" aria-hidden>
+                <defs>
+                  <clipPath id="egg-submerged">
+                    <path
+                      d={EGG_OUTLINE.d}
+                      transform={EGG_OUTLINE.tilt ? `rotate(${EGG_OUTLINE.tilt} 50 80)` : undefined}
+                    />
+                  </clipPath>
+                  <linearGradient id="egg-water" x1="0" y1="0" x2="0" y2="130" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" className="water-tint" stopOpacity="0.2" />
+                    <stop offset="100%" className="water-tint" stopOpacity="0.5" />
+                  </linearGradient>
+                </defs>
+                <g clipPath="url(#egg-submerged)">
+                  <motion.g
+                    animate={paused ? { transform: "translate(0, -8px)" } : { transform: ["translate(0, -20px)", "translate(0, 12px)", "translate(0, -20px)"] }}
+                    transition={paused ? { duration: 0.25 } : { duration: 4.6, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <motion.g
+                      animate={paused ? { transform: "translate(0,0)" } : { transform: ["translate(0,0)", "translate(-50px,0)"] }}
+                      transition={paused ? { duration: 0.25 } : { duration: 2.8, repeat: Infinity, ease: "linear" }}
+                    >
                       <path d={`${WAVE} V200 H-50 Z`} fill="url(#egg-water)" />
                       <path d={WAVE} fill="none" strokeWidth="1" className="stroke-white/50" />
-                    </g>
-                  </g>
+                    </motion.g>
+                  </motion.g>
                 </g>
-              </g>
-            </svg>
-          </div>
-        </div>
+              </svg>
+            </motion.div>
+          </motion.div>
+        </MotionConfig>
       </div>
 
       <div className="mt-5 text-center">
