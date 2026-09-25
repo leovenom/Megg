@@ -52,10 +52,10 @@ export function Egg({
 }
 
 const YOLK: Record<DonenessId, { inner: string; outer: string; r: number; gloss: number }> = {
-  liquida: { inner: "#FF9F1A", outer: "#F07F00", r: 23, gloss: 0.9 },
+  liquida: { inner: "#FF9F1A", outer: "#F07F00", r: 22, gloss: 0.9 },
   cremosa: { inner: "#FFA92E", outer: "#F4B63C", r: 22, gloss: 0.55 },
-  firme: { inner: "#F8B94A", outer: "#F7D26E", r: 21, gloss: 0.25 },
-  cozida: { inner: "#F6D77A", outer: "#F3DC8C", r: 21, gloss: 0 },
+  firme: { inner: "#F8B94A", outer: "#F7D26E", r: 22, gloss: 0.25 },
+  cozida: { inner: "#F6D77A", outer: "#F3DC8C", r: 22, gloss: 0 },
 };
 
 export function HalfEgg({ doneness, size = 64 }: { doneness: DonenessId; size?: number }) {

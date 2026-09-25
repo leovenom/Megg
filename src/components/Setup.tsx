@@ -135,10 +135,6 @@ export function Setup({
                   className="temp-range w-full"
                   aria-label="Temperatura ambiente"
                 />
-                <div className="mt-1 flex justify-between text-micro text-fg-subtle">
-                  <span>país frio</span>
-                  <span>país quente</span>
-                </div>
               </div>
             </motion.div>
           )}
@@ -157,7 +153,9 @@ export function Setup({
                   active ? "bg-card shadow-soft" : "bg-sunken"
                 }`}
               >
-                <HalfEgg doneness={d.id} size={38} />
+                <span className="shrink-0">
+                  <HalfEgg doneness={d.id} size={38} />
+                </span>
                 <div className="min-w-0">
                   <div className="text-sm font-semibold">{d.name}</div>
                   <div className="text-caption leading-tight text-fg-muted">{d.desc}</div>
