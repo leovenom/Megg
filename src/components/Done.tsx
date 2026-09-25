@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { clearDoneNotification, clearMediaPosition, setMediaHandlers, setMediaInfo, stopKeepAlive } from "@/lib/background";
 import { startAlarm } from "@/lib/sound";
 import { Egg, HalfEgg } from "./Egg";
 import type { DonenessId } from "@/lib/eggs";
@@ -33,7 +34,27 @@ export function Done({
   onReset: () => void;
 }) {
   const t = useT();
-  useEffect(() => startAlarm(), []);
+  const resetRef = useRef(onReset);
+  useEffect(() => {
+    resetRef.current = onReset;
+  }, [onReset]);
+
+  useEffect(() => {
+    const stop = startAlarm();
+    clearMediaPosition();
+    // The lock screen pause button doubles as "stop alarm".
+    const unwire = setMediaHandlers({ pause: () => resetRef.current() });
+    return () => {
+      stop();
+      unwire();
+      stopKeepAlive();
+      void clearDoneNotification();
+    };
+  }, []);
+
+  useEffect(() => {
+    setMediaInfo(t.doneTitle, label);
+  }, [t.doneTitle, label]);
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-16 text-center">
@@ -73,7 +94,7 @@ export function Done({
       </motion.div>
       <motion.p
         {...rise(2)}
-        className="mt-6 max-w-xs rounded-card bg-card/70 px-5 py-4 text-sm leading-relaxed text-fg/70 shadow-soft"
+        className="mt-6 max-w-xs rounded-card bg-card/70 px-5 py-4 text-left text-sm leading-relaxed text-fg/70 shadow-soft"
       >
         {rich(t.iceBath)}
         {doneness === "liquida" || doneness === "cremosa" ? t.iceBathSoft : t.iceBathHard} {t.peel}

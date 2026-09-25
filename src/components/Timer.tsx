@@ -2,8 +2,18 @@
 
 import { motion, useMotionValue } from "motion/react";
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  canNotify,
+  pauseKeepAlive,
+  resumeKeepAlive,
+  setMediaHandlers,
+  setMediaInfo,
+  setMediaPosition,
+  stopKeepAlive,
+} from "@/lib/background";
 import { formatTime, type DonenessId } from "@/lib/eggs";
 import { useT } from "@/lib/i18n";
+import { cancelAlarm, scheduleAlarm, wakeAudio } from "@/lib/sound";
 import { Egg, eggOutline } from "./Egg";
 
 type Milestone = { id: DonenessId; seconds: number };
@@ -47,6 +57,8 @@ export function Timer({
   const t = useT();
   const progress = useMotionValue(0);
   const remainingMs = useRef(total * 1000);
+  const finished = useRef(false);
+  const [hint, setHint] = useState(false);
   const doneRef = useRef(onDone);
   useEffect(() => {
     doneRef.current = onDone;
@@ -55,26 +67,89 @@ export function Timer({
   useEffect(() => {
     if (paused) return;
     const endAt = Date.now() + remainingMs.current;
+    scheduleAlarm(remainingMs.current / 1000);
     let raf = 0;
-    const tick = () => {
+    const update = () => {
       const left = Math.max(0, endAt - Date.now());
       remainingMs.current = left;
       progress.set(1 - left / (total * 1000));
       setSecondsLeft(Math.ceil(left / 1000));
-      if (left === 0) {
+      if (left === 0 && !finished.current) {
+        finished.current = true;
         doneRef.current();
-        return;
       }
-      raf = requestAnimationFrame(tick);
+      return left;
+    };
+    const tick = () => {
+      if (update() > 0) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    // rAF stops while hidden; timers keep running (throttled), so this still catches the end.
+    let fallback = 0;
+    const check = () => {
+      const left = update();
+      if (left > 0) fallback = window.setTimeout(check, left + 20);
+    };
+    fallback = window.setTimeout(check, remainingMs.current + 20);
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      wakeAudio();
+      const left = update();
+      // The audio clock may have been frozen in the background; realign the alarm to the wall clock.
+      if (left > 0) scheduleAlarm(left / 1000);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(fallback);
+      document.removeEventListener("visibilitychange", onVisible);
+      if (!finished.current) cancelAlarm();
+    };
   }, [paused, total, progress]);
 
   useEffect(() => {
+    resumeKeepAlive();
+    let alive = true;
+    void canNotify().then((ok) => alive && setHint(!ok));
+    const unwire = setMediaHandlers({
+      play: () => {
+        resumeKeepAlive();
+        setPaused(false);
+      },
+      pause: () => {
+        pauseKeepAlive();
+        setPaused(true);
+      },
+    });
+    return () => {
+      alive = false;
+      unwire();
+      if (!finished.current) stopKeepAlive();
+    };
+  }, []);
+
+  useEffect(() => {
+    setMediaPosition(total, total - remainingMs.current / 1000, !paused);
+  }, [paused, total]);
+
+  useEffect(() => {
     let lock: WakeLockSentinel | undefined;
-    navigator.wakeLock?.request("screen").then((l) => (lock = l)).catch(() => {});
-    return () => void lock?.release();
+    let alive = true;
+    // The browser drops the lock whenever the page is hidden, so take it again on return.
+    const acquire = () => {
+      if (document.visibilityState !== "visible" || (lock && !lock.released)) return;
+      navigator.wakeLock
+        ?.request("screen")
+        .then((l) => (alive ? (lock = l) : void l.release()))
+        .catch(() => {});
+    };
+    acquire();
+    document.addEventListener("visibilitychange", acquire);
+    return () => {
+      alive = false;
+      document.removeEventListener("visibilitychange", acquire);
+      void lock?.release();
+    };
   }, []);
 
   useEffect(() => {
@@ -91,6 +166,16 @@ export function Timer({
       : elapsed < total * 0.3
         ? t.whiteSetting
         : t.yolkThickening;
+
+  useEffect(() => {
+    setMediaInfo(stage, subtitle);
+  }, [stage, subtitle]);
+
+  const togglePause = () => {
+    if (paused) resumeKeepAlive();
+    else pauseKeepAlive();
+    setPaused(!paused);
+  };
 
   return (
     <div
@@ -236,9 +321,10 @@ export function Timer({
         </div>
       </div>
 
-      <div className="mt-auto pt-12">
+      <div className="mt-auto flex flex-col items-center gap-4 pt-12">
+        {hint && <p className="max-w-60 text-center text-xs text-fg-subtle">{t.keepScreenOn}</p>}
         <button
-          onClick={() => setPaused((p) => !p)}
+          onClick={togglePause}
           className="press rounded-full bg-card px-8 py-3.5 text-sm font-medium shadow-soft"
         >
           {paused ? t.resume : t.pause}

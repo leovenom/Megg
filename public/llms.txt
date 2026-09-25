@@ -4,7 +4,7 @@
 
 ## How it works
 
-1. Pick the egg size, using the official Brazilian weight classes (Ministério da Agricultura): Industrial (< 45 g), Pequeno (45–49 g), Médio (50–54 g), Grande (55–59 g), Extra (60–64 g), Jumbo (65 g +). A representative weight is used for each class (42, 47, 52, 57, 62, 68 g).
+1. Pick the egg size, using the official Brazilian weight classes (Ministério da Agricultura): Pequeno (45–49 g), Médio (50–54 g), Grande (55–59 g), Extra (60–64 g), Jumbo (65 g +). A representative weight is used for each class (47, 52, 57, 62, 68 g).
 2. Say where the egg was: in the fridge (assumed 4 °C) or out of it (room temperature slider, 8–40 °C).
 3. Choose the yolk doneness: Líquida (runny), Cremosa (jammy, mollet), Firme (soft-set centre) or Cozida (fully hard-boiled).
 4. Lower the egg into water that is already at a rolling boil and start the timer. Milestones on the progress bar show when each softer doneness is passed.

@@ -1,4 +1,4 @@
-export type SizeId = "industrial" | "pequeno" | "medio" | "grande" | "extra" | "jumbo";
+export type SizeId = "pequeno" | "medio" | "grande" | "extra" | "jumbo";
 export type DonenessId = "liquida" | "cremosa" | "firme" | "cozida";
 
 export type EggSize = {
@@ -14,7 +14,6 @@ export type Doneness = {
 };
 
 export const SIZES: EggSize[] = [
-  { id: "industrial", range: "< 45 g", grams: 42 },
   { id: "pequeno", range: "45–49 g", grams: 47 },
   { id: "medio", range: "50–54 g", grams: 52 },
   { id: "grande", range: "55–59 g", grams: 57 },

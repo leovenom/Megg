@@ -5,8 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Done } from "@/components/Done";
 import { Setup, type Choice } from "@/components/Setup";
 import { Timer } from "@/components/Timer";
-import { DONENESS, FRIDGE_TEMP, cookSeconds } from "@/lib/eggs";
+import { DONENESS, FRIDGE_TEMP, SIZES, cookSeconds } from "@/lib/eggs";
 import { I18nProvider, useT } from "@/lib/i18n";
+import { askNotifyPermission, notifyDone, registerServiceWorker, startKeepAlive } from "@/lib/background";
 import { unlockAudio } from "@/lib/sound";
 
 type Screen = "setup" | "timer" | "done";
@@ -46,10 +47,16 @@ function App() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (saved) setChoice({ ...DEFAULT_CHOICE, ...JSON.parse(saved) });
+      if (saved) {
+        const parsed = { ...DEFAULT_CHOICE, ...JSON.parse(saved) };
+        if (!SIZES.some((s) => s.id === parsed.size)) parsed.size = DEFAULT_CHOICE.size;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setChoice(parsed);
+      }
     } catch {}
   }, []);
+
+  useEffect(() => registerServiceWorker(), []);
 
   const updateChoice = (c: Choice) => {
     setChoice(c);
@@ -80,6 +87,8 @@ function App() {
                 onChange={updateChoice}
                 onStart={() => {
                   unlockAudio();
+                  startKeepAlive();
+                  askNotifyPermission();
                   setScreen("timer");
                 }}
               />
@@ -92,7 +101,10 @@ function App() {
                 subtitle={subtitle}
                 milestones={milestones}
                 onCancel={() => setScreen("setup")}
-                onDone={() => setScreen("done")}
+                onDone={() => {
+                  void notifyDone(t.notifyTitle, `${t.yolk[choice.doneness]} · ${t.notifyBody}`);
+                  setScreen("done");
+                }}
               />
             </motion.div>
           )}

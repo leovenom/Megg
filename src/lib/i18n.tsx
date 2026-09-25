@@ -44,6 +44,10 @@ type Dict = {
   iceBathHard: string;
   peel: string;
   stopAlarm: string;
+  /** Timer hint, shown only when notifications are unavailable. */
+  keepScreenOn: string;
+  notifyTitle: string;
+  notifyBody: string;
 };
 
 const pt: Dict = {
@@ -51,7 +55,6 @@ const pt: Dict = {
   langLabel: "Idioma",
   sizeTitle: "Tamanho do ovo",
   sizes: {
-    industrial: "Industrial",
     pequeno: "Pequeno",
     medio: "Médio",
     grande: "Grande",
@@ -101,6 +104,9 @@ const pt: Dict = {
   iceBathHard: ". Quanto mais frio, mais fácil descascar: deixe uns 15 min.",
   peel: "Descasque sob a água, começando pela base larga.",
   stopAlarm: "Desligar alarme",
+  keepScreenOn: "Mantenha a tela ligada para ouvir o alarme",
+  notifyTitle: "Seu ovo está no ponto! 🥚",
+  notifyBody: "Hora do banho de gelo. Toque para desligar o alarme.",
 };
 
 const en: Dict = {
@@ -108,7 +114,6 @@ const en: Dict = {
   langLabel: "Language",
   sizeTitle: "Egg size",
   sizes: {
-    industrial: "Mini",
     pequeno: "Small",
     medio: "Medium",
     grande: "Large",
@@ -158,6 +163,9 @@ const en: Dict = {
   iceBathHard: ". The colder it gets, the easier it peels: give it about 15 min.",
   peel: "Peel under water, starting from the wide end.",
   stopAlarm: "Stop alarm",
+  keepScreenOn: "Keep the screen on to hear the alarm",
+  notifyTitle: "Your egg is ready! 🥚",
+  notifyBody: "Time for the ice bath. Tap to stop the alarm.",
 };
 
 const de: Dict = {
@@ -165,7 +173,6 @@ const de: Dict = {
   langLabel: "Sprache",
   sizeTitle: "Eiergröße",
   sizes: {
-    industrial: "Mini",
     pequeno: "Klein",
     medio: "Mittel",
     grande: "Groß",
@@ -215,6 +222,9 @@ const de: Dict = {
   iceBathHard: ". Je kälter, desto leichter lässt es sich schälen: etwa 15 Min. ziehen lassen.",
   peel: "Unter Wasser schälen, am breiten Ende beginnen.",
   stopAlarm: "Alarm aus",
+  keepScreenOn: "Bildschirm anlassen, um den Alarm zu hören",
+  notifyTitle: "Dein Ei ist fertig! 🥚",
+  notifyBody: "Ab ins Eisbad. Tippen, um den Alarm auszuschalten.",
 };
 
 const DICTS: Record<Lang, Dict> = { pt, en, de };
