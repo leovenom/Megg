@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
 import { eggDataUri } from "@/lib/egg-art";
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import { SITE_NAME } from "@/lib/site";
 
-export const alt = `${SITE_NAME}: ${SITE_TAGLINE}. Timer de ovo cozido com um ovo sorridente.`;
+export const alt = `${SITE_NAME}: Just the way you like it. A boiled-egg timer with a smiling egg.`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -36,7 +36,7 @@ export default function OpengraphImage() {
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 168, letterSpacing: -6, lineHeight: 1 }}>{SITE_NAME}</div>
-          <div style={{ fontSize: 52, marginTop: 18, color: "#6B5E55" }}>{SITE_TAGLINE}</div>
+          <div style={{ fontSize: 52, marginTop: 18, color: "#6B5E55" }}>Just the way you like it</div>
           <div
             style={{
               display: "flex",
@@ -49,7 +49,7 @@ export default function OpengraphImage() {
               fontSize: 30,
             }}
           >
-            Timer de ovo cozido
+            Boiled egg timer
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 # Megg
 
 <p align="center">
-  <img src="docs/og.png" alt="Megg — No seu ponto perfeito" width="800" />
+  <img src="docs/og.png" alt="Megg — Just the way you like it" width="800" />
 </p>
 
 **Just the way you like it.** A mobile-first boiled-egg timer that finds the exact cook time from the egg’s weight, starting temperature, and yolk doneness — then counts down and rings when it’s ready.
