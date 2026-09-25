@@ -6,8 +6,8 @@
 
 const DONE_TAG = "megg-done";
 const ARTWORK: MediaImage[] = [
+  { src: "/icons/timer.png", sizes: "512x512", type: "image/png" },
   { src: "/icons/192.png", sizes: "192x192", type: "image/png" },
-  { src: "/icons/512.png", sizes: "512x512", type: "image/png" },
 ];
 
 let keepAlive: HTMLAudioElement | null = null;
@@ -71,10 +71,10 @@ function mediaSession() {
   return typeof navigator !== "undefined" && "mediaSession" in navigator ? navigator.mediaSession : null;
 }
 
-export function setMediaInfo(artist: string, album = "") {
+export function setMediaInfo(title: string, artist = "Megg", album = "") {
   const ms = mediaSession();
   if (!ms || typeof MediaMetadata === "undefined") return;
-  ms.metadata = new MediaMetadata({ title: "Megg", artist, album, artwork: ARTWORK });
+  ms.metadata = new MediaMetadata({ title, artist, album, artwork: ARTWORK });
 }
 
 export function setMediaPosition(duration: number, position: number, playing: boolean) {
@@ -103,6 +103,10 @@ export function setMediaHandlers(handlers: { play?: () => void; pause?: () => vo
   };
   set("play", handlers.play);
   set("pause", handlers.pause);
+  // iOS Now Playing always looks like a music widget; hide skip/seek so it reads as a timer.
+  for (const action of ["nexttrack", "previoustrack", "seekbackward", "seekforward", "seekto"] as const) {
+    set(action, undefined);
+  }
   return () => {
     set("play", undefined);
     set("pause", undefined);

@@ -167,8 +167,8 @@ export function Timer({
         : t.yolkThickening;
 
   useEffect(() => {
-    setMediaInfo(stage, subtitle);
-  }, [stage, subtitle]);
+    setMediaInfo(formatTime(secondsLeft), "Megg", `${stage} · ${subtitle}`);
+  }, [secondsLeft, stage, subtitle]);
 
   const togglePause = () => {
     if (paused) resumeKeepAlive();

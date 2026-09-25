@@ -60,7 +60,7 @@ export function Done({
   }, []);
 
   useEffect(() => {
-    setMediaInfo(t.doneTitle, label);
+    setMediaInfo(t.doneTitle, "Megg", label);
   }, [t.doneTitle, label]);
 
   return (
