@@ -16,6 +16,17 @@
   --sky-300: #9cc7e6;
   --sand-300: #f3d9a4;
   --coral-400: #f08a4b;
+  --steel-100: #f1f3f5;
+  --steel-300: #c5ccd2;
+  --steel-500: #8a949d;
+  --steel-700: #4a535b;
+  --steel-900: #23292e;
+  --water-100: #d9f1f2;
+  --water-300: #7fc6cf;
+  --water-500: #2f95a6;
+  --water-700: #16657a;
+  --water-900: #0b3d4c;
+  --water-950: #062630;
 }
 
 /* Semantic tokens: what components use. Each mode remaps them to primitives. */
@@ -23,8 +34,15 @@
   color-scheme: light;
   --page: var(--cream-100);
   --card: var(--white);
-  --well-from: var(--white);
-  --well-to: var(--cream-200);
+  --pot-rim-hi: var(--steel-100);
+  --pot-rim-mid: var(--steel-300);
+  --pot-rim-lo: var(--steel-500);
+  --pot-rim-edge: var(--steel-700);
+  --water-surface: var(--water-300);
+  --water-mid: var(--water-500);
+  --water-deep: var(--water-700);
+  --water-shadow: var(--water-950);
+  --water-glint: var(--water-100);
   --fg: var(--cocoa-900);
   --inverse: var(--cocoa-900);
   --on-inverse: var(--cream-100);
@@ -43,8 +61,14 @@
     color-scheme: dark;
     --page: var(--cocoa-950);
     --card: var(--cocoa-600);
-    --well-from: var(--cocoa-700);
-    --well-to: var(--cocoa-850);
+    --pot-rim-hi: var(--steel-300);
+    --pot-rim-mid: var(--steel-500);
+    --pot-rim-lo: var(--steel-700);
+    --pot-rim-edge: var(--steel-900);
+    --water-surface: var(--water-500);
+    --water-mid: var(--water-700);
+    --water-deep: var(--water-900);
+    --water-glint: var(--water-300);
     --fg: var(--cream-100);
     --inverse: var(--cream-100);
     --on-inverse: var(--cocoa-900);
@@ -56,8 +80,6 @@
 @theme inline {
   --color-page: var(--page);
   --color-card: var(--card);
-  --color-well-from: var(--well-from);
-  --color-well-to: var(--well-to);
   --color-sunken: color-mix(in oklab, var(--fg) 5%, transparent);
   --color-line: color-mix(in oklab, var(--fg) 10%, transparent);
   --color-fg: var(--fg);
@@ -100,9 +122,72 @@
   transform: scale(0.97);
 }
 
+/* Pot seen from slightly above: brushed-steel rim around a disc of water. */
+.pot {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 60%, rgb(0 0 0 / 0.18) 71%, transparent 72%),
+    conic-gradient(
+      from 200deg,
+      var(--pot-rim-hi),
+      var(--pot-rim-lo) 18%,
+      var(--pot-rim-mid) 32%,
+      var(--pot-rim-hi) 46%,
+      var(--pot-rim-lo) 64%,
+      var(--pot-rim-mid) 80%,
+      var(--pot-rim-hi)
+    );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--pot-rim-edge) 45%, transparent),
+    0 14px 28px -12px rgb(var(--shadow-rgb) / calc(0.35 * var(--shadow-strength)));
+}
+.pot-water {
+  background:
+    radial-gradient(120% 90% at 50% 18%, var(--water-surface), var(--water-mid) 52%, var(--water-deep) 100%);
+  box-shadow:
+    inset 0 10px 18px -6px color-mix(in oklab, var(--water-shadow) 70%, transparent),
+    inset 0 0 0 1.5px color-mix(in oklab, var(--pot-rim-edge) 80%, transparent);
+}
+.pot-caustics {
+  background:
+    radial-gradient(22% 14% at 28% 30%, color-mix(in oklab, var(--water-glint) 55%, transparent), transparent 70%),
+    radial-gradient(18% 12% at 70% 62%, color-mix(in oklab, var(--water-glint) 40%, transparent), transparent 70%),
+    radial-gradient(26% 10% at 62% 22%, color-mix(in oklab, var(--water-glint) 35%, transparent), transparent 70%),
+    radial-gradient(20% 14% at 32% 76%, color-mix(in oklab, var(--water-glint) 30%, transparent), transparent 70%);
+}
+.pot-glare {
+  background: radial-gradient(60% 30% at 38% 8%, rgb(255 255 255 / 0.35), transparent 70%);
+}
+.pot-egg-shadow {
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--water-shadow) 60%, transparent), transparent);
+}
+.pot-bubble {
+  background: radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.95) 0 18%, rgb(255 255 255 / 0.25) 40%, transparent 70%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.6);
+}
+.pot-ripple {
+  border: 1px solid color-mix(in oklab, var(--water-glint) 85%, transparent);
+}
+.water-surface {
+  stop-color: var(--water-surface);
+}
+.water-deep {
+  stop-color: var(--water-deep);
+}
+
 .anim-bubble {
   opacity: 0;
   animation: bubble linear infinite;
+}
+.anim-pop {
+  opacity: 0;
+  animation: pop ease-out infinite;
+}
+.anim-ripple {
+  opacity: 0;
+  animation: ripple 3s ease-out infinite;
+}
+.anim-caustic {
+  animation: caustic 9s ease-in-out infinite alternate;
 }
 .anim-bob {
   animation: bob 2.4s ease-in-out infinite;
@@ -117,14 +202,37 @@
   animation: twinkle 1.4s ease-in-out infinite;
 }
 [data-paused] .anim-bubble,
+[data-paused] .anim-pop,
+[data-paused] .anim-ripple,
+[data-paused] .anim-caustic,
 [data-paused] .anim-bob {
   animation-play-state: paused;
 }
 
+/* --rise is the travel distance, --drift the sideways wobble; both set per bubble. */
 @keyframes bubble {
-  0% { transform: translateY(0) scale(0.9); opacity: 0; }
-  15% { opacity: 0.9; }
-  100% { transform: translateY(-250px) scale(1.1); opacity: 0; }
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  12% { opacity: 0.95; }
+  35% { transform: translate(var(--drift), calc(var(--rise) * -0.35)) scale(0.85); }
+  65% { transform: translate(calc(var(--drift) * -0.6), calc(var(--rise) * -0.65)) scale(1); }
+  88% { opacity: 0.9; }
+  100% { transform: translate(calc(var(--drift) * 0.4), calc(var(--rise) * -1)) scale(1.25); opacity: 0; }
+}
+
+@keyframes pop {
+  0%, 55% { transform: scale(0.2); opacity: 0; }
+  60% { opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0.85); opacity: 0.7; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+@keyframes caustic {
+  0% { transform: translate(-4%, -2%) rotate(-4deg) scale(1); }
+  100% { transform: translate(4%, 3%) rotate(5deg) scale(1.08); }
 }
 
 @keyframes bob {
@@ -156,6 +264,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .anim-bubble,
+  .anim-pop,
+  .anim-ripple,
+  .anim-caustic,
   .anim-bob,
   .anim-hop,
   .anim-twinkle {

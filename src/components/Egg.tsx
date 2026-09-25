@@ -55,6 +55,12 @@ const VARIANTS: { shape: number; shell: number }[] = [
   { shape: 5, shell: 5 },
 ];
 
+/** Outline of a variant in the Egg's 100×130 viewBox, for overlays that must follow the shell. */
+export function eggOutline(variant = 0) {
+  const shape = SHAPES[VARIANTS[variant % VARIANTS.length].shape];
+  return { d: eggPath(shape), tilt: shape.tilt };
+}
+
 const SPECKLES: [number, number, number][] = [
   [30, 30, 1.1], [58, 22, 0.8], [70, 44, 1.2], [40, 52, 0.7], [24, 70, 1],
   [62, 66, 0.9], [78, 82, 0.8], [45, 88, 1.1], [30, 100, 0.8], [66, 104, 1],

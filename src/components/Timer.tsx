@@ -1,20 +1,33 @@
 "use client";
 
 import { motion, useMotionValue } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { DONENESS, formatTime, type DonenessId } from "@/lib/eggs";
-import { Egg } from "./Egg";
+import { Egg, eggOutline } from "./Egg";
 
 type Milestone = { id: DonenessId; seconds: number };
 
-const BUBBLES = [
-  { x: -118, size: 10, delay: 0, dur: 3.2 },
-  { x: -84, size: 6, delay: 1.1, dur: 2.6 },
-  { x: -40, size: 8, delay: 2.2, dur: 3.6 },
-  { x: 36, size: 7, delay: 0.6, dur: 2.9 },
-  { x: 80, size: 11, delay: 1.7, dur: 3.4 },
-  { x: 116, size: 6, delay: 2.6, dur: 2.7 },
+const BUBBLES = Array.from({ length: 22 }, (_, i) => ({
+  left: 6 + ((i * 41) % 88),
+  size: 4 + ((i * 7) % 10),
+  dur: 2 + ((i * 13) % 10) * 0.22,
+  delay: (i * 0.61) % 4,
+  rise: 130 + ((i * 29) % 90),
+  drift: ((i % 5) - 2) * 3,
+}));
+
+const POPS = [
+  { x: 22, y: 26, size: 14, dur: 2.6, delay: 0.3 },
+  { x: 74, y: 20, size: 12, dur: 3.1, delay: 1.4 },
+  { x: 14, y: 58, size: 10, dur: 2.9, delay: 2.1 },
+  { x: 86, y: 52, size: 16, dur: 3.4, delay: 0.8 },
+  { x: 30, y: 84, size: 12, dur: 2.7, delay: 1.8 },
+  { x: 70, y: 86, size: 14, dur: 3.2, delay: 2.6 },
+  { x: 50, y: 10, size: 10, dur: 2.8, delay: 0.1 },
 ];
+
+const EGG_VARIANT = 3;
+const EGG_OUTLINE = eggOutline(EGG_VARIANT);
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
@@ -118,24 +131,75 @@ export function Timer({
           />
         </svg>
 
-        <div className="absolute inset-6 overflow-hidden rounded-full bg-gradient-to-b from-well-from to-well-to">
-          {BUBBLES.map((b, i) => (
-            <span
-              key={i}
-              className="anim-bubble absolute bottom-0 left-1/2 rounded-full border border-line bg-card/70"
-              style={{
-                width: b.size,
-                height: b.size,
-                marginLeft: b.x,
-                animationDuration: `${b.dur}s`,
-                animationDelay: `${b.delay}s`,
-              }}
-            />
-          ))}
+        <div className="pot absolute inset-[30px] rounded-full">
+          <div className="pot-water absolute inset-3.5 overflow-hidden rounded-full">
+            <div className="pot-caustics anim-caustic absolute -inset-[15%]" />
+            <div className="pot-egg-shadow absolute left-[24%] top-[58%] h-[22%] w-[60%]" />
+            {BUBBLES.map((b, i) => (
+              <span
+                key={i}
+                className="pot-bubble anim-bubble absolute rounded-full"
+                style={
+                  {
+                    left: `${b.left}%`,
+                    bottom: -b.size,
+                    width: b.size,
+                    height: b.size,
+                    animationDuration: `${b.dur}s`,
+                    animationDelay: `${b.delay}s`,
+                    "--rise": `${b.rise}px`,
+                    "--drift": `${b.drift}px`,
+                  } as CSSProperties
+                }
+              />
+            ))}
+            {POPS.map((p, i) => (
+              <span
+                key={i}
+                className="pot-ripple anim-pop absolute rounded-full"
+                style={{
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
+                  width: p.size,
+                  height: p.size * 0.6,
+                  animationDuration: `${p.dur}s`,
+                  animationDelay: `${p.delay}s`,
+                }}
+              />
+            ))}
+            {[0, 1.5].map((delay) => (
+              <span
+                key={delay}
+                className="pot-ripple anim-ripple absolute left-1/2 top-[58%] -ml-[60px] -mt-[18px] h-9 w-[120px] rounded-full"
+                style={{ animationDelay: `${delay}s` }}
+              />
+            ))}
+            <div className="pot-glare absolute inset-0" />
+          </div>
         </div>
 
-        <div className="anim-bob relative drop-shadow-[0_18px_18px_rgba(90,60,30,0.18)]">
-          <Egg size={120} variant={3} />
+        <div className="anim-bob relative">
+          <Egg size={120} variant={EGG_VARIANT} className="block" />
+          <svg viewBox="0 0 100 130" className="absolute inset-0 size-full" aria-hidden>
+            <defs>
+              <clipPath id="egg-submerged">
+                <path d={EGG_OUTLINE.d} transform={EGG_OUTLINE.tilt ? `rotate(${EGG_OUTLINE.tilt} 50 80)` : undefined} />
+              </clipPath>
+              <linearGradient id="egg-water" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" className="water-surface" stopOpacity="0.4" />
+                <stop offset="100%" className="water-deep" stopOpacity="0.7" />
+              </linearGradient>
+            </defs>
+            <g clipPath="url(#egg-submerged)">
+              <rect x="0" y="86" width="100" height="44" fill="url(#egg-water)" />
+              <path
+                d="M0 86 Q12 83.5 25 86 T50 86 T75 86 T100 86"
+                fill="none"
+                strokeWidth="1.2"
+                className="stroke-white/60"
+              />
+            </g>
+          </svg>
         </div>
       </div>
 
