@@ -1,0 +1,16 @@
+The egg is ready.
+
+I built Megg — a mobile-first boiled-egg timer that finds the exact cook time from the egg’s weight, starting temperature, and yolk doneness. Then it counts down and rings when it’s done.
+
+Just the way you like it.
+
+• Five sizes, Small to Jumbo
+• Fridge or room temperature
+• Runny, jammy, firm, or hard-boiled
+• Portuguese, English, and German
+• Install it on your phone so the alarm still works with the screen locked
+
+Try it: https://megg-zeta.vercel.app
+Code: https://github.com/leovenom/Megg
+
+Built with Next.js, Tailwind CSS, and Motion.
