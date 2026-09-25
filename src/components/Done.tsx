@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { startAlarm } from "@/lib/sound";
 import { Egg, HalfEgg } from "./Egg";
 import type { DonenessId } from "@/lib/eggs";
+import { rich, useT } from "@/lib/i18n";
 
 const SPARKLES = [
   { x: -110, y: -60, s: 14, d: 0 },
@@ -31,6 +32,7 @@ export function Done({
   label: string;
   onReset: () => void;
 }) {
+  const t = useT();
   useEffect(() => startAlarm(), []);
 
   return (
@@ -44,6 +46,7 @@ export function Done({
               width={p.s}
               height={p.s}
               className="anim-twinkle block text-accent"
+              aria-hidden
               style={{ animationDelay: `${p.d}s` }}
             >
               <path d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z" fill="currentColor" />
@@ -62,7 +65,7 @@ export function Done({
       </div>
 
       <motion.h2 {...rise(0)} className="font-display text-5xl tracking-tight">
-        Tá no ponto!
+        {t.doneTitle}
       </motion.h2>
       <motion.div {...rise(1)} className="mt-3 flex items-center gap-2 text-sm text-fg-muted">
         <HalfEgg doneness={doneness} size={18} />
@@ -72,18 +75,15 @@ export function Done({
         {...rise(2)}
         className="mt-6 max-w-xs rounded-card bg-card/70 px-5 py-4 text-sm leading-relaxed text-fg/70 shadow-soft"
       >
-        Leve direto a um <b>banho de gelo</b> (ou água fria corrente) para parar o cozimento
-        {doneness === "liquida" || doneness === "cremosa"
-          ? " e a gema não passar do ponto: 1–2 min bastam."
-          : ". Quanto mais frio, mais fácil descascar: deixe uns 15 min."}{" "}
-        Descasque sob a água, começando pela base larga.
+        {rich(t.iceBath)}
+        {doneness === "liquida" || doneness === "cremosa" ? t.iceBathSoft : t.iceBathHard} {t.peel}
       </motion.p>
 
       <button
         onClick={onReset}
         className="press mt-auto w-full rounded-full bg-inverse py-4 text-base font-medium text-on-inverse shadow-lift"
       >
-        Desligar alarme
+        {t.stopAlarm}
       </button>
     </div>
   );

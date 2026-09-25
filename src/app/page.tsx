@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Done } from "@/components/Done";
 import { Setup, type Choice } from "@/components/Setup";
 import { Timer } from "@/components/Timer";
-import { DONENESS, FRIDGE_TEMP, SIZES, cookSeconds } from "@/lib/eggs";
+import { DONENESS, FRIDGE_TEMP, cookSeconds } from "@/lib/eggs";
+import { I18nProvider, useT } from "@/lib/i18n";
 import { unlockAudio } from "@/lib/sound";
 
 type Screen = "setup" | "timer" | "done";
@@ -30,6 +31,15 @@ const page = {
 } as const;
 
 export default function Home() {
+  return (
+    <I18nProvider>
+      <App />
+    </I18nProvider>
+  );
+}
+
+function App() {
+  const t = useT();
   const [screen, setScreen] = useState<Screen>("setup");
   const [choice, setChoice] = useState<Choice>(DEFAULT_CHOICE);
 
@@ -48,8 +58,6 @@ export default function Home() {
 
   const eggTemp = choice.fridge ? FRIDGE_TEMP : choice.roomTemp;
   const total = cookSeconds(choice.size, choice.doneness, eggTemp);
-  const doneness = DONENESS.find((d) => d.id === choice.doneness)!;
-  const size = SIZES.find((s) => s.id === choice.size)!;
 
   const milestones = useMemo(
     () =>
@@ -59,7 +67,7 @@ export default function Home() {
     [choice.size, eggTemp, total],
   );
 
-  const subtitle = `${size.name} · ${choice.fridge ? "da geladeira" : `${choice.roomTemp}°C`}`;
+  const subtitle = `${t.sizes[choice.size]} · ${choice.fridge ? t.fromFridge : `${choice.roomTemp}°C`}`;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -92,7 +100,7 @@ export default function Home() {
             <motion.div key="done" {...page}>
               <Done
                 doneness={choice.doneness}
-                label={`Gema ${doneness.name.toLowerCase()} · ${subtitle}`}
+                label={`${t.yolk[choice.doneness]} · ${subtitle}`}
                 onReset={() => setScreen("setup")}
               />
             </motion.div>

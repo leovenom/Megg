@@ -1,0 +1,29 @@
+# Megg
+
+> Megg ("No seu ponto perfeito") is a free, mobile-first boiled-egg timer web app. It computes the exact cooking time from the egg's size, its starting temperature and the desired yolk doneness, then runs a countdown with an alarm. Primary language is Brazilian Portuguese (pt-BR); English and German are available in the interface. No account, no ads, no data leaves the device (the last choice is kept in localStorage).
+
+## How it works
+
+1. Pick the egg size, using the official Brazilian weight classes (Ministério da Agricultura): Industrial (< 45 g), Pequeno (45–49 g), Médio (50–54 g), Grande (55–59 g), Extra (60–64 g), Jumbo (65 g +). A representative weight is used for each class (42, 47, 52, 57, 62, 68 g).
+2. Say where the egg was: in the fridge (assumed 4 °C) or out of it (room temperature slider, 8–40 °C).
+3. Choose the yolk doneness: Líquida (runny), Cremosa (jammy, mollet), Firme (soft-set centre) or Cozida (fully hard-boiled).
+4. Lower the egg into water that is already at a rolling boil and start the timer. Milestones on the progress bar show when each softer doneness is passed.
+5. When the alarm rings, move the egg to an ice bath to stop the cooking.
+
+## How times are computed
+
+- Reference times are for eggs at 20 °C going into boiling water, at 58 g, 68 g and 78 g:
+  - Líquida: 4:30 / 5:00 / 5:30
+  - Cremosa: 6:00 / 6:30 / 7:30
+  - Firme: 7:30 / 8:30 / 9:30
+  - Cozida: 9:00 / 10:00 / 11:30
+- Between reference weights the time is interpolated linearly. Below 58 g it is scaled by (mass / 58 g)^(2/3), because heat-penetration time grows with mass to the 2/3 power (Charles Williams' egg-boiling formula).
+- Starting temperature: a fridge egg (4 °C) needs about 30 s more than a 20 °C egg, i.e. ~1.9 s per °C below 20 °C (and less time above it), scaled by the same mass factor. In hot climates an egg kept out of the fridge starts warmer and cooks faster.
+- Results are rounded to the nearest 5 seconds.
+
+## Egg science notes
+
+- Egg white starts to set at about 62 °C and is firm at about 80 °C.
+- The yolk starts to thicken at about 65 °C and is set at about 70 °C.
+- Past roughly 12 minutes, iron and sulphur react and a grey-green ring forms around the yolk, with a stronger smell.
+- Easier peeling: starting in boiling water helps most; an ice bath afterwards firms the egg; eggs a few days old peel better than very fresh ones. Peel under water starting from the wide end.

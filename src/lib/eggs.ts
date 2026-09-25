@@ -3,33 +3,30 @@ export type DonenessId = "liquida" | "cremosa" | "firme" | "cozida";
 
 export type EggSize = {
   id: SizeId;
-  name: string;
   range: string;
   grams: number;
 };
 
 export type Doneness = {
   id: DonenessId;
-  name: string;
-  desc: string;
   /** Reference seconds at 58 g, 68 g and 78 g, room temperature, into boiling water. */
   ref: [number, number, number];
 };
 
 export const SIZES: EggSize[] = [
-  { id: "industrial", name: "Industrial", range: "< 45 g", grams: 42 },
-  { id: "pequeno", name: "Pequeno", range: "45–49 g", grams: 47 },
-  { id: "medio", name: "Médio", range: "50–54 g", grams: 52 },
-  { id: "grande", name: "Grande", range: "55–59 g", grams: 57 },
-  { id: "extra", name: "Extra", range: "60–64 g", grams: 62 },
-  { id: "jumbo", name: "Jumbo", range: "65 g +", grams: 68 },
+  { id: "industrial", range: "< 45 g", grams: 42 },
+  { id: "pequeno", range: "45–49 g", grams: 47 },
+  { id: "medio", range: "50–54 g", grams: 52 },
+  { id: "grande", range: "55–59 g", grams: 57 },
+  { id: "extra", range: "60–64 g", grams: 62 },
+  { id: "jumbo", range: "65 g +", grams: 68 },
 ];
 
 export const DONENESS: Doneness[] = [
-  { id: "liquida", name: "Líquida", desc: "Clara firme, gema escorrendo", ref: [270, 300, 330] },
-  { id: "cremosa", name: "Cremosa", desc: "Mollet, gema de colher", ref: [360, 390, 450] },
-  { id: "firme", name: "Firme", desc: "Coração macio", ref: [450, 510, 570] },
-  { id: "cozida", name: "Cozida", desc: "Totalmente cozida", ref: [540, 600, 690] },
+  { id: "liquida", ref: [270, 300, 330] },
+  { id: "cremosa", ref: [360, 390, 450] },
+  { id: "firme", ref: [450, 510, 570] },
+  { id: "cozida", ref: [540, 600, 690] },
 ];
 
 const REF_GRAMS = [58, 68, 78] as const;
@@ -61,12 +58,4 @@ export function formatTime(totalSeconds: number) {
   const s = Math.max(0, Math.ceil(totalSeconds));
   const m = Math.floor(s / 60);
   return `${m}:${String(s % 60).padStart(2, "0")}`;
-}
-
-export function climateLabel(temp: number) {
-  if (temp <= 12) return "Frio";
-  if (temp <= 19) return "Fresco";
-  if (temp <= 26) return "Ameno";
-  if (temp <= 32) return "Quente";
-  return "Muito quente";
 }
