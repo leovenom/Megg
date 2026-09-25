@@ -1,5 +1,5 @@
 /** Used until a real domain is connected; override with NEXT_PUBLIC_SITE_URL at build time. */
-export const FALLBACK_SITE_URL = "https://megg.vercel.app";
+export const FALLBACK_SITE_URL = "https://megg-zeta.vercel.app";
 
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || FALLBACK_SITE_URL).replace(/\/+$/, "");
 
