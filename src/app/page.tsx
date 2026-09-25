@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { Done } from "@/components/Done";
 import { Setup, type Choice } from "@/components/Setup";
@@ -14,10 +14,19 @@ const DEFAULT_CHOICE: Choice = { size: "grande", fridge: true, roomTemp: 24, don
 const STORAGE_KEY = "megg:choice";
 
 const page = {
-  initial: { opacity: 0, y: 24, filter: "blur(6px)" },
-  animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-  exit: { opacity: 0, y: -24, filter: "blur(6px)" },
-  transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+  initial: { opacity: 0, transform: "translateY(12px)", filter: "blur(4px)" },
+  animate: {
+    opacity: 1,
+    transform: "translateY(0px)",
+    filter: "blur(0px)",
+    transition: { duration: 0.28, ease: [0.23, 1, 0.32, 1] },
+  },
+  exit: {
+    opacity: 0,
+    transform: "translateY(-8px)",
+    filter: "blur(4px)",
+    transition: { duration: 0.15, ease: [0.23, 1, 0.32, 1] },
+  },
 } as const;
 
 export default function Home() {
@@ -53,41 +62,43 @@ export default function Home() {
   const subtitle = `${size.name} · ${choice.fridge ? "da geladeira" : `${choice.roomTemp}°C`}`;
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-cream text-ink">
-      <AnimatePresence mode="wait">
-        {screen === "setup" && (
-          <motion.div key="setup" {...page}>
-            <Setup
-              choice={choice}
-              onChange={updateChoice}
-              onStart={() => {
-                unlockAudio();
-                setScreen("timer");
-              }}
-            />
-          </motion.div>
-        )}
-        {screen === "timer" && (
-          <motion.div key="timer" {...page}>
-            <Timer
-              total={total}
-              subtitle={subtitle}
-              milestones={milestones}
-              onCancel={() => setScreen("setup")}
-              onDone={() => setScreen("done")}
-            />
-          </motion.div>
-        )}
-        {screen === "done" && (
-          <motion.div key="done" {...page}>
-            <Done
-              doneness={choice.doneness}
-              label={`Gema ${doneness.name.toLowerCase()} · ${subtitle}`}
-              onReset={() => setScreen("setup")}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </main>
+    <MotionConfig reducedMotion="user">
+      <main className="min-h-dvh overflow-x-hidden bg-cream text-ink">
+        <AnimatePresence mode="wait">
+          {screen === "setup" && (
+            <motion.div key="setup" {...page}>
+              <Setup
+                choice={choice}
+                onChange={updateChoice}
+                onStart={() => {
+                  unlockAudio();
+                  setScreen("timer");
+                }}
+              />
+            </motion.div>
+          )}
+          {screen === "timer" && (
+            <motion.div key="timer" {...page}>
+              <Timer
+                total={total}
+                subtitle={subtitle}
+                milestones={milestones}
+                onCancel={() => setScreen("setup")}
+                onDone={() => setScreen("done")}
+              />
+            </motion.div>
+          )}
+          {screen === "done" && (
+            <motion.div key="done" {...page}>
+              <Done
+                doneness={choice.doneness}
+                label={`Gema ${doneness.name.toLowerCase()} · ${subtitle}`}
+                onReset={() => setScreen("setup")}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+    </MotionConfig>
   );
 }

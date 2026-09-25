@@ -20,7 +20,13 @@ export type Choice = {
   doneness: DonenessId;
 };
 
-const spring = { type: "spring", stiffness: 420, damping: 34 } as const;
+const spring = { type: "spring", duration: 0.35, bounce: 0.15 } as const;
+const expand = {
+  initial: { height: 0, opacity: 0 },
+  animate: { height: "auto", opacity: 1 },
+  exit: { height: 0, opacity: 0 },
+  transition: { duration: 0.25, ease: [0.23, 1, 0.32, 1] },
+} as const;
 
 export function Setup({
   choice,
@@ -54,7 +60,7 @@ export function Setup({
               <button
                 key={s.id}
                 onClick={() => set({ size: s.id })}
-                className="relative flex flex-col items-center rounded-2xl pb-2 pt-3"
+                className="press relative flex flex-col items-center rounded-2xl pb-2 pt-3"
               >
                 {active && (
                   <motion.span
@@ -65,7 +71,7 @@ export function Setup({
                 )}
                 <motion.span
                   className="relative"
-                  animate={{ scale: active ? 1.08 : 1, y: active ? -2 : 0 }}
+                  animate={{ transform: active ? "translateY(-2px) scale(1.08)" : "translateY(0px) scale(1)" }}
                   transition={spring}
                 >
                   <Egg size={26 + i * 3.6} />
@@ -91,7 +97,7 @@ export function Setup({
               <button
                 key={o.label}
                 onClick={() => set({ fridge: o.fridge })}
-                className="relative rounded-full py-3 text-sm font-medium"
+                className="press relative rounded-full py-3 text-sm font-medium"
               >
                 {active && (
                   <motion.span
@@ -111,13 +117,7 @@ export function Setup({
 
         <AnimatePresence initial={false}>
           {!choice.fridge && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden"
-            >
+            <motion.div {...expand} className="overflow-hidden">
               <div className="pt-5">
                 <div className="mb-2 flex items-baseline justify-between">
                   <span className="text-sm text-ink/55">Temperatura ambiente</span>
@@ -150,11 +150,10 @@ export function Setup({
           {DONENESS.map((d) => {
             const active = choice.doneness === d.id;
             return (
-              <motion.button
+              <button
                 key={d.id}
-                whileTap={{ scale: 0.97 }}
                 onClick={() => set({ doneness: d.id })}
-                className={`relative flex items-center gap-3 rounded-3xl p-3 text-left transition-colors ${
+                className={`press relative flex items-center gap-3 rounded-3xl p-3 text-left ${
                   active ? "bg-white shadow-soft" : "bg-ink/[0.035]"
                 }`}
               >
@@ -173,7 +172,7 @@ export function Setup({
                     className="absolute right-3 top-3 size-2 rounded-full bg-yolk"
                   />
                 )}
-              </motion.button>
+              </button>
             );
           })}
         </div>
@@ -181,18 +180,13 @@ export function Setup({
 
       <button
         onClick={() => setShowScience((v) => !v)}
-        className="mt-2 self-start text-xs text-ink/45 underline decoration-ink/20 underline-offset-4"
+        className="press mt-2 self-start text-xs text-ink/45 underline decoration-ink/20 underline-offset-4"
       >
         {showScience ? "Esconder" : "A ciência do ovo perfeito"}
       </button>
       <AnimatePresence>
         {showScience && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
+          <motion.div {...expand} className="overflow-hidden">
             <div className="mt-3 space-y-2 rounded-3xl bg-ink/[0.035] p-4 text-[13px] leading-relaxed text-ink/70">
               <p>A clara começa a endurecer aos <b>62°C</b> e fica firme aos <b>80°C</b>.</p>
               <p>A gema começa a engrossar aos <b>65°C</b> e fica firme aos <b>70°C</b>.</p>
@@ -214,21 +208,13 @@ export function Setup({
           <p className="mb-3 text-center text-xs text-ink/45">
             Coloque o ovo na água já fervendo e toque em começar
           </p>
-          <motion.button
-            whileTap={{ scale: 0.97 }}
+          <button
             onClick={onStart}
-            className="flex w-full items-center justify-between rounded-full bg-ink px-7 py-4 text-cream shadow-lift"
+            className="press flex w-full items-center justify-between rounded-full bg-ink px-7 py-4 text-cream shadow-lift"
           >
             <span className="text-base font-medium">Começar</span>
-            <motion.span
-              key={total}
-              initial={{ y: 8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              className="font-display text-2xl tabular-nums"
-            >
-              {formatTime(total)}
-            </motion.span>
-          </motion.button>
+            <span className="font-display text-2xl tabular-nums">{formatTime(total)}</span>
+          </button>
         </div>
       </div>
     </div>

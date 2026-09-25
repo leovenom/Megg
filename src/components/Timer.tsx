@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useMotionValue } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { DONENESS, formatTime, type DonenessId } from "@/lib/eggs";
 import { Egg } from "./Egg";
@@ -16,8 +16,7 @@ const BUBBLES = [
   { x: 116, size: 6, delay: 2.6, dur: 2.7 },
 ];
 
-const R = 128;
-const CIRC = 2 * Math.PI * R;
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
 export function Timer({
   total,
@@ -32,9 +31,10 @@ export function Timer({
   onCancel: () => void;
   onDone: () => void;
 }) {
-  const [remainingMs, setRemainingMs] = useState(total * 1000);
+  const [secondsLeft, setSecondsLeft] = useState(total);
   const [paused, setPaused] = useState(false);
-  const endAt = useRef(0);
+  const progress = useMotionValue(0);
+  const remainingMs = useRef(total * 1000);
   const doneRef = useRef(onDone);
   useEffect(() => {
     doneRef.current = onDone;
@@ -42,27 +42,22 @@ export function Timer({
 
   useEffect(() => {
     if (paused) return;
-    endAt.current = Date.now() + remainingMs;
+    const endAt = Date.now() + remainingMs.current;
     let raf = 0;
     const tick = () => {
-      const left = endAt.current - Date.now();
-      if (left <= 0) {
-        setRemainingMs(0);
+      const left = Math.max(0, endAt - Date.now());
+      remainingMs.current = left;
+      progress.set(1 - left / (total * 1000));
+      setSecondsLeft(Math.ceil(left / 1000));
+      if (left === 0) {
         doneRef.current();
         return;
       }
-      setRemainingMs(left);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    const onVisible = () => document.visibilityState === "visible" && tick();
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paused]);
+    return () => cancelAnimationFrame(raf);
+  }, [paused, total, progress]);
 
   useEffect(() => {
     let lock: WakeLockSentinel | undefined;
@@ -70,28 +65,30 @@ export function Timer({
     return () => void lock?.release();
   }, []);
 
-  const remaining = remainingMs / 1000;
-  const elapsed = total - remaining;
-  const progress = Math.min(1, elapsed / total);
-
   useEffect(() => {
-    document.title = `${formatTime(remaining)} · Megg`;
+    document.title = `${formatTime(secondsLeft)} · Megg`;
     return () => void (document.title = "Megg");
-  }, [remaining]);
+  }, [secondsLeft]);
 
+  const elapsed = total - secondsLeft;
   const reached = milestones.filter((m) => elapsed >= m.seconds).at(-1);
-  const stage = reached
-    ? `Gema ${DONENESS.find((d) => d.id === reached.id)!.name.toLowerCase()}`
-    : elapsed < total * 0.3
-      ? "A clara está firmando…"
-      : "A gema começa a engrossar…";
+  const stage = paused
+    ? "Pausado"
+    : reached
+      ? `Gema ${DONENESS.find((d) => d.id === reached.id)!.name.toLowerCase()}`
+      : elapsed < total * 0.3
+        ? "A clara está firmando…"
+        : "A gema começa a engrossar…";
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6">
+    <div
+      data-paused={paused || undefined}
+      className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6"
+    >
       <div className="flex w-full justify-between">
         <button
           onClick={onCancel}
-          className="grid size-10 place-items-center rounded-full bg-ink/[0.05] text-lg text-ink/60"
+          className="press grid size-10 place-items-center rounded-full bg-ink/[0.05] text-lg text-ink/60"
           aria-label="Cancelar"
         >
           ×
@@ -102,73 +99,74 @@ export function Timer({
 
       <div className="relative mt-10 grid size-[300px] place-items-center">
         <svg viewBox="0 0 300 300" className="absolute inset-0 -rotate-90">
-          <circle cx="150" cy="150" r={R} fill="none" stroke="currentColor" strokeWidth="6" className="text-ink/[0.06]" />
-          <circle
-            cx="150"
-            cy="150"
-            r={R}
-            fill="none"
-            stroke="url(#ring)"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeDasharray={CIRC}
-            strokeDashoffset={CIRC * (1 - progress)}
-          />
           <defs>
             <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="#F7C453" />
               <stop offset="100%" stopColor="#F08A00" />
             </linearGradient>
           </defs>
+          <circle cx="150" cy="150" r="128" fill="none" stroke="currentColor" strokeWidth="6" className="text-ink/[0.06]" />
+          <motion.circle
+            cx="150"
+            cy="150"
+            r="128"
+            fill="none"
+            stroke="url(#ring)"
+            strokeWidth="6"
+            strokeLinecap="round"
+            style={{ pathLength: progress }}
+          />
         </svg>
 
         <div className="absolute inset-6 overflow-hidden rounded-full bg-gradient-to-b from-white to-[#F3ECE2]">
           {BUBBLES.map((b, i) => (
-            <motion.span
+            <span
               key={i}
-              className="absolute bottom-0 left-1/2 rounded-full border border-ink/10 bg-white/70"
-              style={{ width: b.size, height: b.size, marginLeft: b.x }}
-              animate={paused ? { y: 0, opacity: 0 } : { y: [0, -250], opacity: [0, 0.9, 0] }}
-              transition={{ duration: b.dur, delay: b.delay, repeat: Infinity, ease: "easeOut" }}
+              className="anim-bubble absolute bottom-0 left-1/2 rounded-full border border-ink/10 bg-white/70"
+              style={{
+                width: b.size,
+                height: b.size,
+                marginLeft: b.x,
+                animationDuration: `${b.dur}s`,
+                animationDelay: `${b.delay}s`,
+              }}
             />
           ))}
         </div>
 
-        <motion.div
-          animate={paused ? { y: 0, rotate: 0 } : { y: [0, -6, 0, -3, 0], rotate: [0, -4, 3, -2, 0] }}
-          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-          className="relative drop-shadow-[0_18px_18px_rgba(90,60,30,0.18)]"
-        >
+        <div className="anim-bob relative drop-shadow-[0_18px_18px_rgba(90,60,30,0.18)]">
           <Egg size={120} />
-        </motion.div>
+        </div>
       </div>
 
       <div className="mt-8 text-center">
-        <div className="font-display text-7xl tabular-nums tracking-tight">{formatTime(remaining)}</div>
+        <div className="font-display text-7xl tabular-nums tracking-tight">{formatTime(secondsLeft)}</div>
         <motion.div
           key={stage}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, transform: "translateY(4px)" }}
+          animate={{ opacity: 1, transform: "translateY(0px)" }}
+          transition={{ duration: 0.25, ease: EASE_OUT }}
           className="mt-2 text-sm text-ink/55"
         >
-          {paused ? "Pausado" : stage}
+          {stage}
         </motion.div>
       </div>
 
       <div className="mt-8 w-full px-2">
         <div className="relative h-1.5 rounded-full bg-ink/[0.07]">
-          <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#F7C453] to-[#F08A00]"
-            style={{ width: `${progress * 100}%` }}
+          <motion.div
+            className="absolute inset-0 origin-left rounded-full bg-gradient-to-r from-[#F7C453] to-[#F08A00]"
+            style={{ scaleX: progress }}
           />
           {milestones.map((m) => {
             const pos = m.seconds / total;
             const hit = elapsed >= m.seconds;
             return (
               <div key={m.id} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${pos * 100}%` }}>
-                <motion.div
-                  animate={{ scale: hit ? 1 : 0.7 }}
-                  className={`size-3 rounded-full border-2 border-cream ${hit ? "bg-yolk" : "bg-ink/20"}`}
+                <div
+                  className={`size-3 rounded-full border-2 border-cream transition-[transform,background-color] duration-200 ease-out ${
+                    hit ? "scale-100 bg-yolk" : "scale-75 bg-ink/20"
+                  }`}
                 />
                 <span
                   className={`absolute top-4 whitespace-nowrap text-[10px] text-ink/45 ${
@@ -184,13 +182,12 @@ export function Timer({
       </div>
 
       <div className="mt-auto pt-12">
-        <motion.button
-          whileTap={{ scale: 0.95 }}
+        <button
           onClick={() => setPaused((p) => !p)}
-          className="rounded-full bg-white px-8 py-3.5 text-sm font-medium shadow-soft"
+          className="press rounded-full bg-white px-8 py-3.5 text-sm font-medium shadow-soft"
         >
           {paused ? "Continuar" : "Pausar"}
-        </motion.button>
+        </button>
       </div>
     </div>
   );
