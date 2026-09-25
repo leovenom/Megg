@@ -63,7 +63,7 @@ export default function Home() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="min-h-dvh overflow-x-hidden bg-cream text-ink">
+      <main className="min-h-dvh overflow-x-hidden bg-page text-fg">
         <AnimatePresence mode="wait">
           {screen === "setup" && (
             <motion.div key="setup" {...page}>

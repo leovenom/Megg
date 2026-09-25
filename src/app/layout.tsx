@@ -14,11 +14,14 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: "Megg",
-  description: "Megg — meu ovo no ponto perfeito. Timer de ovo cozido por peso, temperatura e ponto da gema.",
+  description: "Megg — No seu ponto perfeito. Timer de ovo cozido por peso, temperatura e ponto da gema.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#F6F1EA",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F6F1EA" },
+    { media: "(prefers-color-scheme: dark)", color: "#171311" },
+  ],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

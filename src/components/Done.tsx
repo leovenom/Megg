@@ -36,14 +36,14 @@ export function Done({
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-16 text-center">
       <div className="relative grid h-[320px] w-full place-items-center">
-        <div className="anim-halo absolute size-64 rounded-full bg-yolk/25" />
+        <div className="anim-halo absolute size-64 rounded-full bg-accent/25" />
         {SPARKLES.map((p, i) => (
           <span key={i} className="absolute" style={{ transform: `translate(${p.x}px, ${p.y}px)` }}>
             <svg
               viewBox="0 0 20 20"
               width={p.s}
               height={p.s}
-              className="anim-twinkle block text-yolk"
+              className="anim-twinkle block text-accent"
               style={{ animationDelay: `${p.d}s` }}
             >
               <path d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z" fill="currentColor" />
@@ -64,20 +64,24 @@ export function Done({
       <motion.h2 {...rise(0)} className="font-display text-5xl tracking-tight">
         Tá no ponto!
       </motion.h2>
-      <motion.div {...rise(1)} className="mt-3 flex items-center gap-2 text-sm text-ink/55">
+      <motion.div {...rise(1)} className="mt-3 flex items-center gap-2 text-sm text-fg-muted">
         <HalfEgg doneness={doneness} size={18} />
         {label}
       </motion.div>
       <motion.p
         {...rise(2)}
-        className="mt-6 max-w-xs rounded-3xl bg-white/70 px-5 py-4 text-sm leading-relaxed text-ink/70 shadow-soft"
+        className="mt-6 max-w-xs rounded-card bg-card/70 px-5 py-4 text-sm leading-relaxed text-fg/70 shadow-soft"
       >
-        Tire da água e leve direto a um <b>banho de gelo</b> por 1–2 minutos para parar o cozimento.
+        Leve direto a um <b>banho de gelo</b> (ou água fria corrente) para parar o cozimento
+        {doneness === "liquida" || doneness === "cremosa"
+          ? " e a gema não passar do ponto: 1–2 min bastam."
+          : ". Quanto mais frio, mais fácil descascar: deixe uns 15 min."}{" "}
+        Descasque sob a água, começando pela base larga.
       </motion.p>
 
       <button
         onClick={onReset}
-        className="press mt-auto w-full rounded-full bg-ink py-4 text-base font-medium text-cream shadow-lift"
+        className="press mt-auto w-full rounded-full bg-inverse py-4 text-base font-medium text-on-inverse shadow-lift"
       >
         Desligar alarme
       </button>

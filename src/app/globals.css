@@ -1,13 +1,91 @@
 @import "tailwindcss";
 
+/* Primitives: the raw palette. Components never reference these directly. */
+:root {
+  --white: #ffffff;
+  --cream-100: #f6f1ea;
+  --cream-200: #f3ece2;
+  --cocoa-600: #3a302a;
+  --cocoa-700: #2a231f;
+  --cocoa-850: #1d1815;
+  --cocoa-900: #2b2521;
+  --cocoa-950: #171311;
+  --yolk-300: #f7c453;
+  --yolk-500: #f5a623;
+  --yolk-600: #f08a00;
+  --sky-300: #9cc7e6;
+  --sand-300: #f3d9a4;
+  --coral-400: #f08a4b;
+}
+
+/* Semantic tokens: what components use. Each mode remaps them to primitives. */
+:root {
+  color-scheme: light;
+  --page: var(--cream-100);
+  --card: var(--white);
+  --well-from: var(--white);
+  --well-to: var(--cream-200);
+  --fg: var(--cocoa-900);
+  --inverse: var(--cocoa-900);
+  --on-inverse: var(--cream-100);
+  --accent: var(--yolk-500);
+  --accent-from: var(--yolk-300);
+  --accent-to: var(--yolk-600);
+  --temp-cold: var(--sky-300);
+  --temp-mild: var(--sand-300);
+  --temp-hot: var(--coral-400);
+  --shadow-rgb: 60 40 20;
+  --shadow-strength: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: var(--cocoa-950);
+    --card: var(--cocoa-600);
+    --well-from: var(--cocoa-700);
+    --well-to: var(--cocoa-850);
+    --fg: var(--cream-100);
+    --inverse: var(--cream-100);
+    --on-inverse: var(--cocoa-900);
+    --shadow-rgb: 0 0 0;
+    --shadow-strength: 2.5;
+  }
+}
+
 @theme inline {
-  --color-cream: #f6f1ea;
-  --color-ink: #2b2521;
-  --color-yolk: #f5a623;
+  --color-page: var(--page);
+  --color-card: var(--card);
+  --color-well-from: var(--well-from);
+  --color-well-to: var(--well-to);
+  --color-sunken: color-mix(in oklab, var(--fg) 5%, transparent);
+  --color-line: color-mix(in oklab, var(--fg) 10%, transparent);
+  --color-fg: var(--fg);
+  --color-fg-muted: color-mix(in oklab, var(--fg) 55%, transparent);
+  --color-fg-subtle: color-mix(in oklab, var(--fg) 40%, transparent);
+  --color-inverse: var(--inverse);
+  --color-on-inverse: var(--on-inverse);
+  --color-accent: var(--accent);
+  --color-accent-from: var(--accent-from);
+  --color-accent-to: var(--accent-to);
+
   --font-sans: var(--font-geist-sans);
   --font-display: var(--font-fraunces);
-  --shadow-soft: 0 1px 2px rgb(60 40 20 / 0.04), 0 8px 24px -8px rgb(60 40 20 / 0.12);
-  --shadow-lift: 0 12px 30px -10px rgb(43 37 33 / 0.45);
+
+  --text-micro: 0.625rem;
+  --text-caption: 0.65625rem;
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--letter-spacing: 0.14em;
+  --text-body-sm: 0.8125rem;
+
+  --radius-chip: 1rem;
+  --radius-card: 1.5rem;
+
+  --shadow-soft:
+    0 1px 2px rgb(var(--shadow-rgb) / calc(0.04 * var(--shadow-strength))),
+    0 8px 24px -8px rgb(var(--shadow-rgb) / calc(0.12 * var(--shadow-strength)));
+  --shadow-lift: 0 12px 30px -10px rgb(var(--shadow-rgb) / calc(0.3 * var(--shadow-strength)));
+
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
@@ -94,8 +172,8 @@
 
 html,
 body {
-  background: var(--color-cream);
-  color: var(--color-ink);
+  background: var(--page);
+  color: var(--fg);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -108,7 +186,7 @@ button {
   appearance: none;
   height: 6px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #9cc7e6 0%, #f3d9a4 50%, #f08a4b 100%);
+  background: linear-gradient(90deg, var(--temp-cold) 0%, var(--temp-mild) 50%, var(--temp-hot) 100%);
   outline: none;
 }
 
@@ -117,8 +195,8 @@ button {
   width: 26px;
   height: 26px;
   border-radius: 999px;
-  background: #fff;
-  box-shadow: 0 2px 10px rgb(60 40 20 / 0.25);
+  background: var(--card);
+  box-shadow: 0 2px 10px rgb(var(--shadow-rgb) / calc(0.25 * var(--shadow-strength)));
   border: 0;
 }
 
@@ -126,7 +204,7 @@ button {
   width: 26px;
   height: 26px;
   border-radius: 999px;
-  background: #fff;
-  box-shadow: 0 2px 10px rgb(60 40 20 / 0.25);
+  background: var(--card);
+  box-shadow: 0 2px 10px rgb(var(--shadow-rgb) / calc(0.25 * var(--shadow-strength)));
   border: 0;
 }
