@@ -1,8 +1,16 @@
 # Megg
 
+<p align="center">
+  <img src="docs/og.png" alt="Megg — No seu ponto perfeito" width="800" />
+</p>
+
 **Just the way you like it.** A mobile-first boiled-egg timer that finds the exact cook time from the egg’s weight, starting temperature, and yolk doneness — then counts down and rings when it’s ready.
 
 Live: [megg-zeta.vercel.app](https://megg-zeta.vercel.app)
+
+<p align="center">
+  <img src="docs/setup.png" alt="Megg setup screen: egg size, fridge or counter, and yolk doneness" width="390" />
+</p>
 
 Built with Next.js 16, Tailwind CSS 4, and Motion.
 
