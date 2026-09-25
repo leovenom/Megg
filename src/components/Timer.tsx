@@ -135,7 +135,7 @@ export function Timer({
         </div>
 
         <div className="anim-bob relative drop-shadow-[0_18px_18px_rgba(90,60,30,0.18)]">
-          <Egg size={120} />
+          <Egg size={120} variant={3} />
         </div>
       </div>
 

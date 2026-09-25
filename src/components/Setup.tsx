@@ -74,7 +74,7 @@ export function Setup({
                   animate={{ transform: active ? "translateY(-2px) scale(1.08)" : "translateY(0px) scale(1)" }}
                   transition={spring}
                 >
-                  <Egg size={26 + i * 3.6} />
+                  <Egg size={26 + i * 3.6} variant={i} />
                 </motion.span>
                 <span className={`relative mt-1.5 text-caption font-medium ${active ? "text-fg" : "text-fg-muted"}`}>
                   {s.name}
@@ -143,7 +143,7 @@ export function Setup({
 
       <Section title="Ponto da gema">
         <div className="grid grid-cols-2 gap-3">
-          {DONENESS.map((d) => {
+          {DONENESS.map((d, i) => {
             const active = choice.doneness === d.id;
             return (
               <button
@@ -154,7 +154,7 @@ export function Setup({
                 }`}
               >
                 <span className="shrink-0">
-                  <HalfEgg doneness={d.id} size={38} />
+                  <HalfEgg doneness={d.id} size={38} variant={i + 1} />
                 </span>
                 <div className="min-w-0">
                   <div className="text-sm font-semibold">{d.name}</div>
