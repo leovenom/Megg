@@ -16,10 +16,13 @@
   --sky-300: #9cc7e6;
   --sand-300: #f3d9a4;
   --coral-400: #f08a4b;
-  --greige-300: #c9bfb2;
-  --greige-500: #9e9284;
-  --greige-700: #6b6157;
-  --greige-800: #4a423b;
+  --steel-200: #d7dbdf;
+  --steel-300: #bcc2c8;
+  --steel-500: #8e969e;
+  --steel-600: #6c737a;
+  --steel-700: #4f555b;
+  --steel-800: #373c41;
+  --steel-900: #1f2326;
 }
 
 /* Semantic tokens: what components use. Each mode remaps them to primitives. */
@@ -27,9 +30,11 @@
   color-scheme: light;
   --page: var(--cream-100);
   --card: var(--white);
-  --water-surface: var(--greige-300);
-  --water-deep: var(--greige-500);
-  --water-shadow: var(--greige-800);
+  --pot-hi: var(--steel-200);
+  --pot-lo: var(--steel-500);
+  --pot-wall: var(--steel-700);
+  --water-tint: var(--steel-600);
+  --water-shadow: var(--steel-900);
   --fg: var(--cocoa-900);
   --inverse: var(--cocoa-900);
   --on-inverse: var(--cream-100);
@@ -48,9 +53,11 @@
     color-scheme: dark;
     --page: var(--cocoa-950);
     --card: var(--cocoa-600);
-    --water-surface: var(--greige-700);
-    --water-deep: var(--greige-800);
-    --water-shadow: var(--cocoa-950);
+    --pot-hi: var(--steel-500);
+    --pot-lo: var(--steel-700);
+    --pot-wall: var(--steel-900);
+    --water-tint: var(--steel-800);
+    --water-shadow: var(--steel-900);
     --fg: var(--cream-100);
     --inverse: var(--cream-100);
     --on-inverse: var(--cocoa-900);
@@ -104,9 +111,22 @@
   transform: scale(0.97);
 }
 
-/* Clear water seen from slightly above; depth comes from the gradient alone. */
+/* Brushed stainless pot bottom seen through clear water: concentric brushing,
+   a low-contrast conic sheen, and a vignette where the floor meets the walls. */
 .water {
-  background: radial-gradient(110% 90% at 50% 20%, var(--water-surface), var(--water-deep));
+  background:
+    radial-gradient(closest-side, transparent 58%, color-mix(in oklab, var(--pot-wall) 75%, transparent) 100%),
+    repeating-radial-gradient(circle, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 3px),
+    conic-gradient(
+      from 20deg,
+      var(--pot-hi),
+      var(--pot-lo) 22%,
+      var(--pot-hi) 40%,
+      var(--pot-lo) 62%,
+      var(--pot-hi) 80%,
+      var(--pot-lo) 92%,
+      var(--pot-hi)
+    );
   box-shadow:
     inset 0 12px 22px -10px color-mix(in oklab, var(--water-shadow) 55%, transparent),
     inset 0 0 0 1px rgb(255 255 255 / 0.12);
@@ -124,11 +144,8 @@
 .water-ripple {
   border: 1px solid rgb(255 255 255 / 0.4);
 }
-.water-surface {
-  stop-color: var(--water-surface);
-}
-.water-deep {
-  stop-color: var(--water-deep);
+.water-tint {
+  stop-color: var(--water-tint);
 }
 
 .anim-bubble {
@@ -141,6 +158,18 @@
 }
 .anim-float {
   animation: float 3.2s ease-in-out infinite;
+}
+.anim-wander {
+  animation: wander 8.4s ease-in-out infinite;
+}
+.anim-wave {
+  animation: wave 4.6s ease-in-out infinite;
+}
+.anim-swell {
+  animation: swell 3.1s ease-in-out infinite;
+}
+.anim-lap {
+  animation: lap 2.8s linear infinite;
 }
 .anim-bob {
   animation: bob 2.4s ease-in-out infinite;
@@ -157,6 +186,10 @@
 [data-paused] .anim-bubble,
 [data-paused] .anim-pop,
 [data-paused] .anim-float,
+[data-paused] .anim-wander,
+[data-paused] .anim-wave,
+[data-paused] .anim-swell,
+[data-paused] .anim-lap,
 [data-paused] .anim-bob {
   animation-play-state: paused;
 }
@@ -181,6 +214,29 @@
 @keyframes float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-5px) rotate(0.8deg); }
+}
+
+@keyframes wander {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  22% { transform: translate(9px, -4px) rotate(2.5deg); }
+  48% { transform: translate(3px, 8px) rotate(0.5deg); }
+  74% { transform: translate(-10px, 2px) rotate(-3deg); }
+}
+
+/* Waterline offsets in the Egg's viewBox units: resting line is ~85% coverage,
+   -22 reaches full cover and +14 (plus swell) exposes the top ~30%. */
+@keyframes wave {
+  0%, 100% { transform: translateY(-22px); }
+  50% { transform: translateY(14px); }
+}
+
+@keyframes swell {
+  0%, 100% { transform: translateY(-3px); }
+  50% { transform: translateY(4px); }
+}
+
+@keyframes lap {
+  to { transform: translateX(-50px); }
 }
 
 @keyframes bob {
@@ -214,6 +270,10 @@
   .anim-bubble,
   .anim-pop,
   .anim-float,
+  .anim-wander,
+  .anim-wave,
+  .anim-swell,
+  .anim-lap,
   .anim-bob,
   .anim-hop,
   .anim-twinkle {

@@ -24,6 +24,8 @@ const BUBBLES = Array.from({ length: 12 }, (_, i) => {
 
 const EGG_VARIANT = 3;
 const EGG_OUTLINE = eggOutline(EGG_VARIANT);
+/* Resting waterline at y=24 with a 50-unit wavelength, wide enough to slide one wavelength. */
+const WAVE = "M-50 24 Q-37.5 21.5 -25 24 T0 24 T25 24 T50 24 T75 24 T100 24 T125 24 T150 24 T175 24 T200 24";
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
@@ -129,7 +131,6 @@ export function Timer({
         </svg>
 
         <div className="water absolute inset-[34px] overflow-hidden rounded-full">
-          <div className="water-egg-shadow absolute left-[22%] top-[68%] h-[20%] w-[60%]" />
           {BUBBLES.map((b, i) => (
             <Fragment key={i}>
               <span
@@ -164,28 +165,32 @@ export function Timer({
           <div className="water-glare absolute inset-0" />
         </div>
 
-        <div className="anim-float relative">
-          <Egg size={120} variant={EGG_VARIANT} className="block" />
-          <svg viewBox="0 0 100 130" className="absolute inset-0 size-full" aria-hidden>
-            <defs>
-              <clipPath id="egg-submerged">
-                <path d={EGG_OUTLINE.d} transform={EGG_OUTLINE.tilt ? `rotate(${EGG_OUTLINE.tilt} 50 80)` : undefined} />
-              </clipPath>
-              <linearGradient id="egg-water" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" className="water-surface" stopOpacity="0.3" />
-                <stop offset="100%" className="water-deep" stopOpacity="0.5" />
-              </linearGradient>
-            </defs>
-            <g clipPath="url(#egg-submerged)">
-              <rect x="0" y="19" width="100" height="111" fill="url(#egg-water)" />
-              <path
-                d="M0 19 Q12 17.5 25 19 T50 19 T75 19 T100 19"
-                fill="none"
-                strokeWidth="1"
-                className="stroke-white/50"
-              />
-            </g>
-          </svg>
+        <div className="anim-wander relative">
+          <div className="water-egg-shadow absolute -bottom-3 left-1/2 h-9 w-[130px] -translate-x-1/2" />
+          <div className="anim-float relative">
+            <Egg size={120} variant={EGG_VARIANT} className="block" />
+            <svg viewBox="0 0 100 130" className="absolute inset-0 size-full" aria-hidden>
+              <defs>
+                <clipPath id="egg-submerged">
+                  <path d={EGG_OUTLINE.d} transform={EGG_OUTLINE.tilt ? `rotate(${EGG_OUTLINE.tilt} 50 80)` : undefined} />
+                </clipPath>
+                <linearGradient id="egg-water" x1="0" y1="0" x2="0" y2="130" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" className="water-tint" stopOpacity="0.2" />
+                  <stop offset="100%" className="water-tint" stopOpacity="0.5" />
+                </linearGradient>
+              </defs>
+              <g clipPath="url(#egg-submerged)">
+                <g className="anim-wave">
+                  <g className="anim-swell">
+                    <g className="anim-lap">
+                      <path d={`${WAVE} V200 H-50 Z`} fill="url(#egg-water)" />
+                      <path d={WAVE} fill="none" strokeWidth="1" className="stroke-white/50" />
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
         </div>
       </div>
 
