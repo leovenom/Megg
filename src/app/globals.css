@@ -326,3 +326,48 @@ button {
   box-shadow: 0 2px 10px rgb(var(--shadow-rgb) / calc(0.25 * var(--shadow-strength)));
   border: 0;
 }
+
+/* ---- Egg-size carousel (Setup) ----
+   Native scroll + snap; the looping and selection live in SizeCarousel.
+   touch-action keeps both pans so a vertical swipe that starts on the track
+   still scrolls the page (pan-x alone would swallow it). */
+.size-carousel {
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y pinch-zoom;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+}
+.size-carousel::-webkit-scrollbar {
+  display: none;
+}
+.size-carousel-item {
+  scroll-snap-align: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.size-carousel-egg {
+  transform-origin: 50% 100%;
+}
+
+/* Edge values must match EDGE_SCALE / EDGE_OPACITY in Setup.tsx (JS fallback). */
+@keyframes size-focus {
+  0%, 100% { transform: scale(0.62); opacity: 0.4; }
+  50% { transform: scale(1); opacity: 1; }
+}
+@keyframes size-focus-fade {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+@supports (animation-timeline: view()) {
+  .size-carousel-egg {
+    animation: size-focus linear both;
+    animation-timeline: view(inline);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .size-carousel-egg {
+      animation-name: size-focus-fade;
+    }
+  }
+}

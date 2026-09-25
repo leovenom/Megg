@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   DONENESS,
   SIZES,
@@ -10,7 +10,7 @@ import {
   type DonenessId,
   type SizeId,
 } from "@/lib/eggs";
-import { LANGS, climateIndex, rich, useI18n } from "@/lib/i18n";
+import { LANGS, climateIndex, rich, useI18n, useT } from "@/lib/i18n";
 import { Egg, HalfEgg } from "./Egg";
 
 export type Choice = {
@@ -83,37 +83,7 @@ export function Setup({
       </header>
 
       <Section title={t.sizeTitle}>
-        <div className="grid grid-cols-6 items-end gap-1">
-          {SIZES.map((s, i) => {
-            const active = choice.size === s.id;
-            return (
-              <button
-                key={s.id}
-                onClick={() => set({ size: s.id })}
-                className="press relative flex flex-col items-center rounded-chip pb-2 pt-3"
-              >
-                {active && (
-                  <motion.span
-                    layoutId="size-pill"
-                    transition={spring}
-                    className="absolute inset-0 rounded-chip bg-card shadow-soft"
-                  />
-                )}
-                <motion.span
-                  className="relative"
-                  animate={{ transform: active ? "translateY(-2px) scale(1.08)" : "translateY(0px) scale(1)" }}
-                  transition={spring}
-                >
-                  <Egg size={26 + i * 3.6} variant={i} />
-                </motion.span>
-                <span className={`relative mt-1.5 text-caption font-medium ${active ? "text-fg" : "text-fg-muted"}`}>
-                  {t.sizes[s.id]}
-                </span>
-                <span className="relative text-micro tabular-nums text-fg-subtle">{s.range}</span>
-              </button>
-            );
-          })}
-        </div>
+        <SizeCarousel value={choice.size} onChange={(size) => set({ size })} />
       </Section>
 
       <Section title={t.whereTitle}>
@@ -238,6 +208,243 @@ export function Setup({
             <span className="font-display text-2xl tabular-nums">{formatTime(total)}</span>
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+const ITEM = 72;
+const N = SIZES.length;
+const COPIES = 5;
+const MID = Math.floor(COPIES / 2);
+const LOOP = Array.from({ length: COPIES * N }, (_, k) => k);
+/** Focus falloff at the carousel edge; must match the size-focus keyframes in globals.css. */
+const EDGE_SCALE = 0.62;
+const EDGE_OPACITY = 0.4;
+const SETTLE_MS = 140;
+
+const mod = (k: number) => ((k % N) + N) % N;
+const centerOf = (el: HTMLElement) => el.offsetLeft + el.offsetWidth / 2;
+const leftFor = (sc: HTMLElement, el: HTMLElement) => centerOf(el) - sc.clientWidth / 2;
+
+function nearestIndex(sc: HTMLElement, items: (HTMLElement | null)[]) {
+  const c = sc.scrollLeft + sc.clientWidth / 2;
+  let best = 0;
+  let bestD = Infinity;
+  items.forEach((el, k) => {
+    if (!el) return;
+    const d = Math.abs(centerOf(el) - c);
+    if (d < bestD) {
+      bestD = d;
+      best = k;
+    }
+  });
+  return best;
+}
+
+/** JS fallback for browsers without scroll-driven animations. */
+function paintFocus(sc: HTMLElement, items: (HTMLElement | null)[], reduce: boolean) {
+  const c = sc.scrollLeft + sc.clientWidth / 2;
+  const half = (sc.clientWidth + ITEM) / 2;
+  for (const el of items) {
+    const egg = el?.firstElementChild as HTMLElement | null | undefined;
+    if (!el || !egg) continue;
+    const t = Math.min(1, Math.abs(centerOf(el) - c) / half);
+    egg.style.opacity = String(1 - (1 - EDGE_OPACITY) * t);
+    egg.style.transform = reduce ? "" : `scale(${1 - (1 - EDGE_SCALE) * t})`;
+  }
+}
+
+function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeId) => void }) {
+  const t = useT();
+  const reduce = useReducedMotion() ?? false;
+  const scroller = useRef<HTMLDivElement>(null);
+  const items = useRef<(HTMLButtonElement | null)[]>([]);
+  const pending = useRef<number | null>(null);
+  const positioned = useRef(false);
+  const sel = SIZES.findIndex((s) => s.id === value);
+  const latest = useRef({ value, sel, onChange, reduce });
+  useLayoutEffect(() => {
+    latest.current = { value, sel, onChange, reduce };
+  });
+
+  useLayoutEffect(() => {
+    const sc = scroller.current;
+    if (!sc) return;
+    if (positioned.current) {
+      if (pending.current !== null && mod(pending.current) === sel) return;
+      if (mod(nearestIndex(sc, items.current)) === sel) return;
+    }
+    const target = items.current[MID * N + sel];
+    if (!target) return;
+    sc.scrollLeft = leftFor(sc, target);
+    positioned.current = true;
+    if (!CSS.supports("animation-timeline: view()")) paintFocus(sc, items.current, latest.current.reduce);
+  }, [sel]);
+
+  useEffect(() => {
+    const sc = scroller.current;
+    if (!sc) return;
+    const cssDriven = CSS.supports("animation-timeline: view()");
+    let frame = 0;
+    let timer = 0;
+    let touching = false;
+
+    const settle = () => {
+      window.clearTimeout(timer);
+      if (touching) return;
+      const list = items.current;
+      let k = nearestIndex(sc, list);
+      const home = MID * N + mod(k);
+      const from = list[k];
+      const to = list[home];
+      if (k !== home && from && to) {
+        sc.scrollLeft += centerOf(to) - centerOf(from);
+        k = home;
+      }
+      pending.current = null;
+      const id = SIZES[mod(k)].id;
+      if (id !== latest.current.value) {
+        navigator.vibrate?.(8);
+        latest.current.onChange(id);
+      }
+    };
+    const onScroll = () => {
+      if (!cssDriven && !frame) {
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          paintFocus(sc, items.current, latest.current.reduce);
+        });
+      }
+      window.clearTimeout(timer);
+      timer = window.setTimeout(settle, SETTLE_MS);
+    };
+    const onTouchStart = () => {
+      touching = true;
+    };
+    const onTouchEnd = () => {
+      touching = false;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(settle, SETTLE_MS);
+    };
+    const onResize = () => {
+      const target = items.current[MID * N + latest.current.sel];
+      if (target) sc.scrollLeft = leftFor(sc, target);
+      if (!cssDriven) paintFocus(sc, items.current, latest.current.reduce);
+    };
+
+    const ro = new ResizeObserver(onResize);
+    ro.observe(sc);
+    sc.addEventListener("scroll", onScroll, { passive: true });
+    sc.addEventListener("scrollend", settle);
+    sc.addEventListener("touchstart", onTouchStart, { passive: true });
+    sc.addEventListener("touchend", onTouchEnd, { passive: true });
+    sc.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+      sc.removeEventListener("scroll", onScroll);
+      sc.removeEventListener("scrollend", settle);
+      sc.removeEventListener("touchstart", onTouchStart);
+      sc.removeEventListener("touchend", onTouchEnd);
+      sc.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, []);
+
+  const pick = (k: number) => {
+    const sc = scroller.current;
+    const el = items.current[k];
+    if (!sc || !el) return;
+    pending.current = k;
+    sc.scrollTo({ left: leftFor(sc, el), behavior: reduce ? "instant" : "smooth" });
+    const id = SIZES[mod(k)].id;
+    if (id !== value) {
+      navigator.vibrate?.(8);
+      onChange(id);
+    }
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const sc = scroller.current;
+    if (!sc) return;
+    const k = nearestIndex(sc, items.current);
+    const step = ({ ArrowRight: 1, ArrowLeft: -1, Home: -mod(k), End: N - 1 - mod(k) } as Record<string, number>)[
+      e.key
+    ];
+    if (step === undefined) return;
+    e.preventDefault();
+    const next = k + step;
+    const el = items.current[next];
+    if (!el) return;
+    pending.current = next;
+    sc.scrollTo({ left: leftFor(sc, el), behavior: "instant" });
+    items.current[MID * N + mod(next)]?.focus({ preventScroll: true });
+    const id = SIZES[mod(next)].id;
+    if (id !== value) onChange(id);
+  };
+
+  const current = SIZES[sel];
+
+  return (
+    <div>
+      <div className="relative">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 rounded-chip bg-card shadow-soft"
+          style={{ width: ITEM }}
+        />
+        <div
+          ref={scroller}
+          role="listbox"
+          aria-label={t.sizeTitle}
+          aria-orientation="horizontal"
+          onKeyDown={onKeyDown}
+          className="size-carousel relative flex overflow-x-auto"
+          style={{ paddingInline: `calc(50% - ${ITEM / 2}px)` }}
+        >
+          {LOOP.map((k) => {
+            const j = mod(k);
+            const s = SIZES[j];
+            const live = Math.floor(k / N) === MID;
+            return (
+              <button
+                key={k}
+                ref={(el) => {
+                  items.current[k] = el;
+                }}
+                type="button"
+                role="option"
+                aria-selected={live ? j === sel : undefined}
+                aria-hidden={live ? undefined : true}
+                aria-label={live ? `${t.sizes[s.id]}, ${s.range}` : undefined}
+                tabIndex={live && j === sel ? 0 : -1}
+                onClick={() => pick(k)}
+                className="size-carousel-item press flex h-[84px] shrink-0 items-end justify-center rounded-chip pb-3 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+                style={{ width: ITEM }}
+              >
+                <span className="size-carousel-egg block">
+                  <Egg size={30 + j * 4} variant={j} className="block" />
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div aria-hidden className="relative mt-2.5 flex h-9 justify-center overflow-hidden">
+        <AnimatePresence initial={false} mode="popLayout">
+          <motion.div
+            key={current.id}
+            initial={{ opacity: 0, transform: "translateY(6px)" }}
+            animate={{ opacity: 1, transform: "translateY(0px)" }}
+            exit={{ opacity: 0, transform: "translateY(-6px)", transition: { duration: 0.12, ease: [0.23, 1, 0.32, 1] } }}
+            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+            className="flex flex-col items-center"
+          >
+            <span className="text-sm font-medium leading-tight">{t.sizes[current.id]}</span>
+            <span className="text-micro tabular-nums text-fg-subtle">{current.range}</span>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
