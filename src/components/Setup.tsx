@@ -44,7 +44,7 @@ export function Setup({
   const set = (patch: Partial<Choice>) => onChange({ ...choice, ...patch });
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(17rem+env(safe-area-inset-bottom))] pt-8">
+    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(10.5rem+env(safe-area-inset-bottom))] pt-8">
       <header className="mb-8 flex items-center gap-3">
         <span className="relative block h-[39px] w-[30px] shrink-0">
           <span className="absolute left-0 top-0 origin-top-left scale-50">
@@ -192,7 +192,7 @@ export function Setup({
 
       <button
         onClick={() => setShowScience((v) => !v)}
-        className="press mb-4 mt-2 self-start text-xs text-fg-subtle underline decoration-line underline-offset-4"
+        className="press mt-2 self-start text-xs text-fg-subtle underline decoration-line underline-offset-4"
       >
         {showScience ? t.scienceHide : t.scienceShow}
       </button>
