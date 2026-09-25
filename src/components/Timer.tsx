@@ -179,7 +179,7 @@ export function Timer({
   return (
     <div
       data-paused={paused || undefined}
-      className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6"
+      className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-6"
     >
       <div className="flex w-full justify-between">
         <button

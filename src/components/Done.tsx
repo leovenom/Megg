@@ -64,7 +64,7 @@ export function Done({
   }, [t.doneTitle, label]);
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-16 text-center">
+    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-16 text-center">
       <MotionConfig reducedMotion="never">
         <div className="relative grid h-[320px] w-full place-items-center">
           <motion.div

@@ -44,7 +44,7 @@ export function Setup({
   const set = (patch: Partial<Choice>) => onChange({ ...choice, ...patch });
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-36 pt-8">
+    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-48 pt-8">
       <header className="mb-8 flex items-center gap-3">
         <span className="relative block h-[39px] w-[30px] shrink-0">
           <span className="absolute left-0 top-0 origin-top-left scale-50">
@@ -195,7 +195,7 @@ export function Setup({
         )}
       </AnimatePresence>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-page via-page to-page/0 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-8">
+      <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-page via-page to-page/0 px-5 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-8">
         <div className="mx-auto max-w-md">
           <p className="mb-3 text-center text-xs text-fg-subtle">
             {t.startHint}
