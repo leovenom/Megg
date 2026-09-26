@@ -89,7 +89,7 @@ const pt: Dict = {
   ],
   scienceNote:
     "Tempos para ovos colocados direto na água fervendo. Ovo gelado ganha ~30 s; em países quentes, o ovo fora da geladeira já começa mais morno e cozinha mais rápido.",
-  startHint: "Coloque o ovo na água já fervendo e toque em começar",
+  startHint: "Ferva a água antes. Coloque o ovo na **água já fervendo** e toque em começar",
   start: "Começar",
   fromFridge: "da geladeira",
   whiteSetting: "A clara está firmando…",
@@ -148,7 +148,7 @@ const en: Dict = {
   ],
   scienceNote:
     "Times assume eggs go straight into boiling water. Fridge-cold eggs need ~30 s more; in hot climates, eggs kept out of the fridge start warmer and cook faster.",
-  startHint: "Lower the egg into boiling water, then tap start",
+  startHint: "Boil the water first. Lower the egg into **boiling water**, then tap start",
   start: "Start",
   fromFridge: "from the fridge",
   whiteSetting: "The white is setting…",
@@ -207,7 +207,7 @@ const de: Dict = {
   ],
   scienceNote:
     "Die Zeiten gelten für Eier, die direkt ins kochende Wasser kommen. Kühlschrankeier brauchen ~30 s länger; in heißen Ländern sind Eier außerhalb des Kühlschranks schon wärmer und garen schneller.",
-  startHint: "Ei ins sprudelnd kochende Wasser geben und auf Start tippen",
+  startHint: "Wasser zuerst aufkochen. Ei ins **kochende Wasser** geben und auf Start tippen",
   start: "Start",
   fromFridge: "aus dem Kühlschrank",
   whiteSetting: "Das Eiweiß stockt…",
