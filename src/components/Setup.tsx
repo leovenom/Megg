@@ -188,26 +188,26 @@ export function Setup({
             );
           })}
         </div>
-
-        <button
-          onClick={() => setShowScience((v) => !v)}
-          className="press mt-4 text-xs text-fg-subtle underline decoration-line underline-offset-4"
-        >
-          {showScience ? t.scienceHide : t.scienceShow}
-        </button>
-        <AnimatePresence>
-          {showScience && (
-            <motion.div {...expand} className="overflow-hidden">
-              <div className="mt-3 space-y-2 rounded-card bg-card p-4 text-body-sm leading-relaxed text-fg shadow-soft">
-                {t.science.map((p, i) => (
-                  <p key={i}>{rich(p)}</p>
-                ))}
-                <p className="text-fg-muted">{t.scienceNote}</p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </Section>
+
+      <button
+        onClick={() => setShowScience((v) => !v)}
+        className="press -mt-4 mb-2 self-start text-xs text-fg-subtle underline decoration-line underline-offset-4"
+      >
+        {showScience ? t.scienceHide : t.scienceShow}
+      </button>
+      <AnimatePresence initial={false}>
+        {showScience && (
+          <motion.div {...expand} className="overflow-hidden">
+            <div className="mb-6 space-y-2 rounded-card bg-card p-4 text-body-sm leading-relaxed text-fg shadow-soft [background-color:var(--card)]">
+              {t.science.map((p, i) => (
+                <p key={i}>{rich(p)}</p>
+              ))}
+              <p className="text-fg-muted">{t.scienceNote}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-page via-page to-page/0 px-5 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-8">
         <div className="mx-auto max-w-md">
