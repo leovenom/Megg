@@ -119,12 +119,14 @@ export function Done({
         {doneness === "liquida" || doneness === "cremosa" ? t.iceBathSoft : t.iceBathHard} {t.peel}
       </motion.p>
 
-      <button
-        onClick={onReset}
-        className="press mt-auto w-full rounded-full bg-inverse py-4 text-base font-medium text-on-inverse shadow-lift"
-      >
-        {t.stopAlarm}
-      </button>
+      <div className="mt-auto w-full pt-10">
+        <button
+          onClick={onReset}
+          className="press w-full rounded-full bg-inverse py-4 text-base font-medium text-on-inverse shadow-lift"
+        >
+          {t.stopAlarm}
+        </button>
+      </div>
     </div>
   );
 }
