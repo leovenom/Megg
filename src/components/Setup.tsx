@@ -234,7 +234,7 @@ const N = SIZES.length;
 const COPIES = 5;
 const MID = Math.floor(COPIES / 2);
 const LOOP = Array.from({ length: COPIES * N }, (_, k) => k);
-/** Focus falloff at the carousel edge; must match the size-focus keyframes in globals.css. */
+/** Focus falloff at the carousel edge; paintFocus applies these on scroll. */
 const EDGE_SCALE = 0.55;
 const EDGE_OPACITY = 0.72;
 const CENTER_SCALE = 1.32;
@@ -259,8 +259,9 @@ function nearestIndex(sc: HTMLElement, items: (HTMLElement | null)[]) {
   return best;
 }
 
-/** JS fallback for browsers without scroll-driven animations. */
-function paintFocus(sc: HTMLElement, items: (HTMLElement | null)[], reduce: boolean) {
+/** Paint focus falloff for the size carousel. Always JS — CSS view() timelines
+ *  claim support on iOS Safari but often don't drive horizontal scroll. */
+function paintFocus(sc: HTMLElement, items: (HTMLElement | null)[]) {
   const c = sc.scrollLeft + sc.clientWidth / 2;
   const half = (sc.clientWidth + ITEM) / 2;
   for (const el of items) {
@@ -272,7 +273,7 @@ function paintFocus(sc: HTMLElement, items: (HTMLElement | null)[], reduce: bool
     const focus = Math.pow(1 - t, 2.4);
     if (egg) {
       egg.style.opacity = String(EDGE_OPACITY + (1 - EDGE_OPACITY) * focus);
-      egg.style.transform = reduce ? "" : `scale(${EDGE_SCALE + (CENTER_SCALE - EDGE_SCALE) * focus})`;
+      egg.style.transform = `scale(${EDGE_SCALE + (CENTER_SCALE - EDGE_SCALE) * focus})`;
     }
     if (label) {
       label.style.opacity = String(0.55 + 0.45 * focus);
@@ -306,13 +307,12 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
     if (!target) return;
     sc.scrollLeft = leftFor(sc, target);
     positioned.current = true;
-    if (!CSS.supports("animation-timeline: view()")) paintFocus(sc, items.current, latest.current.reduce);
+    paintFocus(sc, items.current);
   }, [sel]);
 
   useEffect(() => {
     const sc = scroller.current;
     if (!sc) return;
-    const cssDriven = CSS.supports("animation-timeline: view()");
     let frame = 0;
     let timer = 0;
     let touching = false;
@@ -330,6 +330,7 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
         k = home;
       }
       pending.current = null;
+      paintFocus(sc, items.current);
       const id = SIZES[mod(k)].id;
       if (id !== latest.current.value) {
         navigator.vibrate?.(8);
@@ -342,10 +343,10 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
       if (id !== latest.current.value) latest.current.onChange(id);
     };
     const onScroll = () => {
-      if (!cssDriven && !frame) {
+      if (!frame) {
         frame = requestAnimationFrame(() => {
           frame = 0;
-          paintFocus(sc, items.current, latest.current.reduce);
+          paintFocus(sc, items.current);
         });
       }
       syncSelection();
@@ -363,9 +364,10 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
     const onResize = () => {
       const target = items.current[MID * N + latest.current.sel];
       if (target) sc.scrollLeft = leftFor(sc, target);
-      if (!cssDriven) paintFocus(sc, items.current, latest.current.reduce);
+      paintFocus(sc, items.current);
     };
 
+    paintFocus(sc, items.current);
     const ro = new ResizeObserver(onResize);
     ro.observe(sc);
     sc.addEventListener("scroll", onScroll, { passive: true });

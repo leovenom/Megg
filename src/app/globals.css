@@ -367,53 +367,8 @@ button {
 }
 .size-carousel-egg {
   transform-origin: 50% 50%;
+  will-change: transform, opacity;
 }
-
-/* Edge values must match EDGE_SCALE / EDGE_OPACITY / CENTER_SCALE in Setup.tsx (JS fallback).
-   Mid keyframes keep neighbors small so only the centered egg reads as “in front”. */
-@keyframes size-focus {
-  0%, 100% { transform: scale(0.55); opacity: 0.72; }
-  38%, 62% { transform: scale(0.7); opacity: 0.82; }
-  50% { transform: scale(1.32); opacity: 1; }
-}
-@keyframes size-focus-fade {
-  0%, 100% { opacity: 0.72; }
-  38%, 62% { opacity: 0.82; }
-  50% { opacity: 1; }
-}
-@keyframes size-label-focus {
-  0%, 100% {
-    opacity: 0.55;
-    transform: scale(0.92);
-    font-weight: 400;
-    color: color-mix(in oklab, var(--fg) 48%, transparent);
-  }
-  38%, 62% {
-    opacity: 0.65;
-    transform: scale(0.95);
-    font-weight: 400;
-    color: color-mix(in oklab, var(--fg) 55%, transparent);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.02);
-    font-weight: var(--font-weight-semibold);
-    color: var(--fg);
-  }
-}
-@supports (animation-timeline: view()) {
-  .size-carousel-egg {
-    animation: size-focus linear both;
-    animation-timeline: view(inline);
-  }
-  .size-carousel-label {
-    transform-origin: 50% 0%;
-    animation: size-label-focus linear both;
-    animation-timeline: view(inline);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .size-carousel-egg {
-      animation-name: size-focus-fade;
-    }
-  }
+.size-carousel-label {
+  will-change: opacity, transform;
 }
