@@ -371,16 +371,16 @@ button {
 
 /* Edge values must match EDGE_SCALE / EDGE_OPACITY in Setup.tsx (JS fallback). */
 @keyframes size-focus {
-  0%, 100% { transform: scale(0.62); opacity: 0.4; }
-  50% { transform: scale(1); opacity: 1; }
+  0%, 100% { transform: scale(0.52); opacity: 0.35; }
+  50% { transform: scale(1.1); opacity: 1; }
 }
 @keyframes size-focus-fade {
-  0%, 100% { opacity: 0.4; }
+  0%, 100% { opacity: 0.35; }
   50% { opacity: 1; }
 }
 @keyframes size-label-focus {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.4; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1); }
 }
 @supports (animation-timeline: view()) {
   .size-carousel-egg {
@@ -388,6 +388,7 @@ button {
     animation-timeline: view(inline);
   }
   .size-carousel-label {
+    transform-origin: 50% 0%;
     animation: size-label-focus linear both;
     animation-timeline: view(inline);
   }

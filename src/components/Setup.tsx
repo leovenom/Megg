@@ -209,7 +209,7 @@ export function Setup({
         )}
       </AnimatePresence>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-page via-page to-page/0 px-5 pt-8">
+      <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-page via-page to-page/0 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-8">
         <div className="mx-auto max-w-md">
           <p className="mb-3 rounded-2xl bg-card px-4 py-3 text-center text-sm leading-snug text-fg shadow-soft [background-color:var(--card)]">
             {rich(t.startHint)}
@@ -227,14 +227,14 @@ export function Setup({
   );
 }
 
-const ITEM = 72;
+const ITEM = 84;
 const N = SIZES.length;
 const COPIES = 5;
 const MID = Math.floor(COPIES / 2);
 const LOOP = Array.from({ length: COPIES * N }, (_, k) => k);
 /** Focus falloff at the carousel edge; must match the size-focus keyframes in globals.css. */
-const EDGE_SCALE = 0.62;
-const EDGE_OPACITY = 0.4;
+const EDGE_SCALE = 0.52;
+const EDGE_OPACITY = 0.35;
 const SETTLE_MS = 140;
 
 const mod = (k: number) => ((k % N) + N) % N;
@@ -403,7 +403,7 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
       <div className="relative">
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 rounded-chip bg-card shadow-soft"
+          className="pointer-events-none absolute -inset-y-1 left-1/2 -translate-x-1/2 rounded-chip bg-card shadow-lift ring-1 ring-line/60"
           style={{ width: ITEM }}
         />
         <div
@@ -432,23 +432,29 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
                 aria-label={live ? `${t.sizes[s.id]}, ${s.range}` : undefined}
                 tabIndex={live && j === sel ? 0 : -1}
                 onClick={() => pick(k)}
-                className="size-carousel-item press flex shrink-0 flex-col items-center rounded-chip pb-2.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+                className="size-carousel-item press flex shrink-0 flex-col items-center rounded-chip pb-3 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
                 style={{ width: ITEM }}
               >
-                <span className="flex h-[76px] items-end pb-1.5">
+                <span className="flex h-[88px] items-end pb-2">
                   <span className="size-carousel-egg block">
-                    <Egg size={30 + j * 4} variant={j} className="block" />
+                    <Egg size={34 + j * 4} variant={j} className="block" />
                   </span>
                 </span>
-                <span className="size-carousel-label flex flex-col items-center">
+                <span className="size-carousel-label flex flex-col items-center gap-0.5">
                   <span
-                    className={`whitespace-nowrap text-micro font-medium leading-tight ${
-                      j === sel ? "text-fg" : "text-fg-muted"
+                    className={`whitespace-nowrap text-xs leading-tight ${
+                      j === sel ? "font-semibold text-fg" : "font-medium text-fg-muted"
                     }`}
                   >
                     {t.sizes[s.id]}
                   </span>
-                  <span className="whitespace-nowrap text-micro tabular-nums text-fg-subtle">{s.range}</span>
+                  <span
+                    className={`whitespace-nowrap text-micro tabular-nums ${
+                      j === sel ? "text-fg-muted" : "text-fg-subtle"
+                    }`}
+                  >
+                    {s.range}
+                  </span>
                 </span>
               </button>
             );
