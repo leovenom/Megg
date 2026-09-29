@@ -235,9 +235,9 @@ const COPIES = 5;
 const MID = Math.floor(COPIES / 2);
 const LOOP = Array.from({ length: COPIES * N }, (_, k) => k);
 /** Focus falloff at the carousel edge; must match the size-focus keyframes in globals.css. */
-const EDGE_SCALE = 0.68;
-const EDGE_OPACITY = 0.65;
-const CENTER_SCALE = 1.2;
+const EDGE_SCALE = 0.55;
+const EDGE_OPACITY = 0.5;
+const CENTER_SCALE = 1.32;
 const SETTLE_MS = 140;
 
 const mod = (k: number) => ((k % N) + N) % N;
@@ -268,15 +268,16 @@ function paintFocus(sc: HTMLElement, items: (HTMLElement | null)[], reduce: bool
     const egg = el.querySelector(".size-carousel-egg") as HTMLElement | null;
     const label = el.querySelector(".size-carousel-label") as HTMLElement | null;
     const t = Math.min(1, Math.abs(centerOf(el) - c) / half);
-    const focus = 1 - t;
+    // Sharper peak so only the centered egg reads as "in front".
+    const focus = Math.pow(1 - t, 2.4);
     if (egg) {
       egg.style.opacity = String(EDGE_OPACITY + (1 - EDGE_OPACITY) * focus);
       egg.style.transform = reduce ? "" : `scale(${EDGE_SCALE + (CENTER_SCALE - EDGE_SCALE) * focus})`;
     }
     if (label) {
-      label.style.opacity = String(0.55 + 0.45 * focus);
-      label.style.fontWeight = focus > 0.7 ? "700" : "500";
-      label.style.color = focus > 0.7 ? "var(--fg)" : "";
+      label.style.opacity = String(0.4 + 0.6 * focus);
+      label.style.fontWeight = focus > 0.82 ? "700" : "400";
+      label.style.color = focus > 0.82 ? "var(--fg)" : "";
     }
   }
 }
