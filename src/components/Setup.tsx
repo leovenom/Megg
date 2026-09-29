@@ -227,14 +227,15 @@ export function Setup({
   );
 }
 
-const ITEM = 84;
+const ITEM = 80;
 const N = SIZES.length;
 const COPIES = 5;
 const MID = Math.floor(COPIES / 2);
 const LOOP = Array.from({ length: COPIES * N }, (_, k) => k);
 /** Focus falloff at the carousel edge; must match the size-focus keyframes in globals.css. */
-const EDGE_SCALE = 0.52;
-const EDGE_OPACITY = 0.35;
+const EDGE_SCALE = 0.72;
+const EDGE_OPACITY = 0.65;
+const CENTER_SCALE = 1.08;
 const SETTLE_MS = 140;
 
 const mod = (k: number) => ((k % N) + N) % N;
@@ -265,7 +266,7 @@ function paintFocus(sc: HTMLElement, items: (HTMLElement | null)[], reduce: bool
     if (!el || !egg) continue;
     const t = Math.min(1, Math.abs(centerOf(el) - c) / half);
     egg.style.opacity = String(1 - (1 - EDGE_OPACITY) * t);
-    egg.style.transform = reduce ? "" : `scale(${1 - (1 - EDGE_SCALE) * t})`;
+    egg.style.transform = reduce ? "" : `scale(${CENTER_SCALE - (CENTER_SCALE - EDGE_SCALE) * t})`;
   }
 }
 
@@ -403,7 +404,7 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
       <div className="relative">
         <span
           aria-hidden
-          className="pointer-events-none absolute -inset-y-1 left-1/2 -translate-x-1/2 rounded-chip bg-card shadow-lift ring-1 ring-line/60"
+          className="pointer-events-none absolute -inset-y-1.5 left-1/2 -translate-x-1/2 rounded-chip bg-card shadow-lift ring-1 ring-fg/10"
           style={{ width: ITEM }}
         />
         <div
@@ -435,9 +436,9 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
                 className="size-carousel-item press flex shrink-0 flex-col items-center rounded-chip pb-3 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
                 style={{ width: ITEM }}
               >
-                <span className="flex h-[88px] items-end pb-2">
+                <span className="flex h-[82px] items-end pb-2">
                   <span className="size-carousel-egg block">
-                    <Egg size={34 + j * 4} variant={j} className="block" />
+                    <Egg size={32 + j * 4} variant={j} className="block" />
                   </span>
                 </span>
                 <span className="size-carousel-label flex flex-col items-center gap-0.5">
