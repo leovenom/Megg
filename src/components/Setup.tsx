@@ -209,7 +209,7 @@ export function Setup({
         )}
       </AnimatePresence>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-page via-page to-page/0 px-5 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-8">
+      <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-page via-page to-page/0 px-5 pt-8">
         <div className="mx-auto max-w-md">
           <p className="mb-3 rounded-2xl bg-card px-4 py-3 text-center text-sm leading-snug text-fg shadow-soft [background-color:var(--card)]">
             {rich(t.startHint)}
