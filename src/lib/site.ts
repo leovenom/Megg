@@ -12,3 +12,6 @@ export const SITE_LOCALE = "pt_BR";
 
 export const THEME_LIGHT = "#F6F1EA";
 export const THEME_DARK = "#171311";
+
+export const GITHUB_URL = "https://github.com/leovenom/Megg";
+export const AUTHOR_NAME = "Leonardt";

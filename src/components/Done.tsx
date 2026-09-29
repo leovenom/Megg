@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { clearDoneNotification, clearMediaPosition, setMediaHandlers, setMediaInfo, stopKeepAlive } from "@/lib/background";
 import { startAlarm } from "@/lib/sound";
 import { Egg, HalfEgg } from "./Egg";
+import { Credit } from "./Credit";
 import type { DonenessId } from "@/lib/eggs";
 import { rich, useT } from "@/lib/i18n";
 
@@ -126,6 +127,7 @@ export function Done({
         >
           {t.stopAlarm}
         </button>
+        <Credit className="mt-3" />
       </div>
     </div>
   );

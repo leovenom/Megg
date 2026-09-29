@@ -89,6 +89,7 @@ export function Egg({
       width={size}
       height={size * 1.3}
       className={className}
+      style={className?.includes("w-full") ? { width: "100%", height: "auto" } : undefined}
       aria-hidden
     >
       <defs>

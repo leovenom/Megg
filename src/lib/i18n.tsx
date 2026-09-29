@@ -48,6 +48,8 @@ type Dict = {
   keepScreenOn: string;
   notifyTitle: string;
   notifyBody: string;
+  /** Credit line under the setup form; GitHub link is separate. */
+  credit: string;
 };
 
 const pt: Dict = {
@@ -107,6 +109,7 @@ const pt: Dict = {
   keepScreenOn: "Mantenha a tela ligada para ouvir o alarme",
   notifyTitle: "Seu ovo está no ponto! 🥚",
   notifyBody: "Hora do banho de gelo. Toque para desligar o alarme.",
+  credit: "Cozido com amor por Leonardt",
 };
 
 const en: Dict = {
@@ -166,6 +169,7 @@ const en: Dict = {
   keepScreenOn: "Keep the screen on to hear the alarm",
   notifyTitle: "Your egg is ready! 🥚",
   notifyBody: "Time for the ice bath. Tap to stop the alarm.",
+  credit: "Cooked with love by Leonardt",
 };
 
 const de: Dict = {
@@ -225,6 +229,7 @@ const de: Dict = {
   keepScreenOn: "Bildschirm anlassen, um den Alarm zu hören",
   notifyTitle: "Dein Ei ist fertig! 🥚",
   notifyBody: "Ab ins Eisbad. Tippen, um den Alarm auszuschalten.",
+  credit: "Mit Liebe gekocht von Leonardt",
 };
 
 const DICTS: Record<Lang, Dict> = { pt, en, de };

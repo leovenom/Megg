@@ -12,6 +12,7 @@ import {
 } from "@/lib/eggs";
 import { LANGS, climateIndex, rich, useI18n, useT } from "@/lib/i18n";
 import { Egg, HalfEgg } from "./Egg";
+import { Credit } from "./Credit";
 
 export type Choice = {
   size: SizeId;
@@ -221,6 +222,7 @@ export function Setup({
             <span className="text-base font-medium">{t.start}</span>
             <span className="font-display text-2xl tabular-nums">{formatTime(total)}</span>
           </button>
+          <Credit className="mt-3" />
         </div>
       </div>
     </div>
@@ -404,7 +406,7 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
       <div className="relative">
         <span
           aria-hidden
-          className="pointer-events-none absolute -inset-y-1.5 left-1/2 -translate-x-1/2 rounded-chip bg-card shadow-lift ring-1 ring-fg/10"
+          className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 rounded-chip bg-card shadow-soft"
           style={{ width: ITEM }}
         />
         <div
@@ -433,10 +435,10 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
                 aria-label={live ? `${t.sizes[s.id]}, ${s.range}` : undefined}
                 tabIndex={live && j === sel ? 0 : -1}
                 onClick={() => pick(k)}
-                className="size-carousel-item press flex shrink-0 flex-col items-center rounded-chip pb-3 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+                className="size-carousel-item press flex shrink-0 flex-col items-center justify-center gap-1 rounded-chip py-3 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
                 style={{ width: ITEM }}
               >
-                <span className="flex h-[82px] items-end pb-2">
+                <span className="flex h-[72px] items-center justify-center">
                   <span className="size-carousel-egg block">
                     <Egg size={32 + j * 4} variant={j} className="block" />
                   </span>

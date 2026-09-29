@@ -148,25 +148,6 @@
   stop-color: var(--water-tint);
 }
 
-/* Timer pot: design at 300×300, then scale to the frame so landscape keeps the same proportions. */
-.pot-frame {
-  container-type: size;
-  aspect-ratio: 1;
-  width: min(300px, 46svh);
-}
-.pot-scene {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  transform: scale(calc(100cqw / 300));
-  transform-origin: top left;
-}
-@media (orientation: landscape) {
-  .pot-frame {
-    width: min(200px, 68svh);
-  }
-}
-
 .anim-bubble-rise,
 .anim-bubble-fade,
 .anim-float,
@@ -385,7 +366,7 @@ button {
   -webkit-user-select: none;
 }
 .size-carousel-egg {
-  transform-origin: 50% 100%;
+  transform-origin: 50% 70%;
 }
 
 /* Edge values must match EDGE_SCALE / EDGE_OPACITY in Setup.tsx (JS fallback). */
