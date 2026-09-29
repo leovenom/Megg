@@ -369,18 +369,28 @@ button {
   transform-origin: 50% 70%;
 }
 
-/* Edge values must match EDGE_SCALE / EDGE_OPACITY in Setup.tsx (JS fallback). */
+/* Edge values must match EDGE_SCALE / EDGE_OPACITY / CENTER_SCALE in Setup.tsx (JS fallback). */
 @keyframes size-focus {
-  0%, 100% { transform: scale(0.72); opacity: 0.65; }
-  50% { transform: scale(1.08); opacity: 1; }
+  0%, 100% { transform: scale(0.68); opacity: 0.65; }
+  50% { transform: scale(1.2); opacity: 1; }
 }
 @keyframes size-focus-fade {
   0%, 100% { opacity: 0.65; }
   50% { opacity: 1; }
 }
 @keyframes size-label-focus {
-  0%, 100% { opacity: 0.7; transform: scale(0.96); }
-  50% { opacity: 1; transform: scale(1); }
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(0.96);
+    font-weight: 500;
+    color: color-mix(in oklab, var(--fg) 55%, transparent);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+    font-weight: 700;
+    color: var(--fg);
+  }
 }
 @supports (animation-timeline: view()) {
   .size-carousel-egg {

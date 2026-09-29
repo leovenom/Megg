@@ -45,7 +45,7 @@ export function Setup({
   const set = (patch: Partial<Choice>) => onChange({ ...choice, ...patch });
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(12.5rem+env(safe-area-inset-bottom))] pt-8">
+    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(13rem+env(safe-area-inset-bottom))] pt-8">
       <header className="mb-8 flex items-center gap-3">
         <span className="relative block h-[39px] w-[30px] shrink-0">
           <span className="absolute left-0 top-0 origin-top-left scale-50">
@@ -235,9 +235,9 @@ const COPIES = 5;
 const MID = Math.floor(COPIES / 2);
 const LOOP = Array.from({ length: COPIES * N }, (_, k) => k);
 /** Focus falloff at the carousel edge; must match the size-focus keyframes in globals.css. */
-const EDGE_SCALE = 0.72;
+const EDGE_SCALE = 0.68;
 const EDGE_OPACITY = 0.65;
-const CENTER_SCALE = 1.08;
+const CENTER_SCALE = 1.2;
 const SETTLE_MS = 140;
 
 const mod = (k: number) => ((k % N) + N) % N;
@@ -264,11 +264,20 @@ function paintFocus(sc: HTMLElement, items: (HTMLElement | null)[], reduce: bool
   const c = sc.scrollLeft + sc.clientWidth / 2;
   const half = (sc.clientWidth + ITEM) / 2;
   for (const el of items) {
-    const egg = el?.firstElementChild as HTMLElement | null | undefined;
-    if (!el || !egg) continue;
+    if (!el) continue;
+    const egg = el.querySelector(".size-carousel-egg") as HTMLElement | null;
+    const label = el.querySelector(".size-carousel-label") as HTMLElement | null;
     const t = Math.min(1, Math.abs(centerOf(el) - c) / half);
-    egg.style.opacity = String(1 - (1 - EDGE_OPACITY) * t);
-    egg.style.transform = reduce ? "" : `scale(${CENTER_SCALE - (CENTER_SCALE - EDGE_SCALE) * t})`;
+    const focus = 1 - t;
+    if (egg) {
+      egg.style.opacity = String(EDGE_OPACITY + (1 - EDGE_OPACITY) * focus);
+      egg.style.transform = reduce ? "" : `scale(${EDGE_SCALE + (CENTER_SCALE - EDGE_SCALE) * focus})`;
+    }
+    if (label) {
+      label.style.opacity = String(0.55 + 0.45 * focus);
+      label.style.fontWeight = focus > 0.7 ? "700" : "500";
+      label.style.color = focus > 0.7 ? "var(--fg)" : null;
+    }
   }
 }
 
@@ -326,6 +335,11 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
         latest.current.onChange(id);
       }
     };
+    const syncSelection = () => {
+      const k = nearestIndex(sc, items.current);
+      const id = SIZES[mod(k)].id;
+      if (id !== latest.current.value) latest.current.onChange(id);
+    };
     const onScroll = () => {
       if (!cssDriven && !frame) {
         frame = requestAnimationFrame(() => {
@@ -333,6 +347,7 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
           paintFocus(sc, items.current, latest.current.reduce);
         });
       }
+      syncSelection();
       window.clearTimeout(timer);
       timer = window.setTimeout(settle, SETTLE_MS);
     };
@@ -444,20 +459,8 @@ function SizeCarousel({ value, onChange }: { value: SizeId; onChange: (id: SizeI
                   </span>
                 </span>
                 <span className="size-carousel-label flex flex-col items-center gap-0.5">
-                  <span
-                    className={`whitespace-nowrap text-xs leading-tight ${
-                      j === sel ? "font-semibold text-fg" : "font-medium text-fg-muted"
-                    }`}
-                  >
-                    {t.sizes[s.id]}
-                  </span>
-                  <span
-                    className={`whitespace-nowrap text-micro tabular-nums ${
-                      j === sel ? "text-fg-muted" : "text-fg-subtle"
-                    }`}
-                  >
-                    {s.range}
-                  </span>
+                  <span className="whitespace-nowrap text-xs leading-tight">{t.sizes[s.id]}</span>
+                  <span className="whitespace-nowrap text-micro tabular-nums opacity-80">{s.range}</span>
                 </span>
               </button>
             );
