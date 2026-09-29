@@ -397,7 +397,7 @@ button {
   50% {
     opacity: 1;
     transform: scale(1.02);
-    font-weight: 700;
+    font-weight: var(--font-weight-semibold);
     color: var(--fg);
   }
 }
