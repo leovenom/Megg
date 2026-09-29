@@ -276,7 +276,7 @@ function paintFocus(sc: HTMLElement, items: (HTMLElement | null)[], reduce: bool
     if (label) {
       label.style.opacity = String(0.55 + 0.45 * focus);
       label.style.fontWeight = focus > 0.7 ? "700" : "500";
-      label.style.color = focus > 0.7 ? "var(--fg)" : null;
+      label.style.color = focus > 0.7 ? "var(--fg)" : "";
     }
   }
 }
