@@ -8,8 +8,8 @@ import {
   resumeKeepAlive,
   setMediaHandlers,
   setMediaInfo,
-  setMediaPosition,
   stopKeepAlive,
+  updateCookAlbum,
   watchCookClock,
 } from "@/lib/background";
 import { formatTime, type DonenessId } from "@/lib/eggs";
@@ -148,10 +148,6 @@ export function Timer({
   }, []);
 
   useEffect(() => {
-    setMediaPosition(total, total - remainingMs.current / 1000, !paused);
-  }, [paused, total]);
-
-  useEffect(() => {
     let lock: WakeLockSentinel | undefined;
     let alive = true;
     // The browser drops the lock whenever the page is hidden, so take it again on return.
@@ -187,8 +183,13 @@ export function Timer({
         : t.yolkThickening;
 
   useEffect(() => {
-    setMediaInfo(formatTime(secondsLeft), "Megg", `${stage} · ${subtitle}`);
-  }, [secondsLeft, stage, subtitle]);
+    updateCookAlbum(`${stage} · ${subtitle}`);
+  }, [stage, subtitle]);
+
+  useEffect(() => {
+    if (!paused) return;
+    setMediaInfo(formatTime(secondsLeft), "Megg", `${t.paused} · ${subtitle}`);
+  }, [paused, secondsLeft, subtitle, t.paused]);
 
   const togglePause = () => {
     if (paused) resumeKeepAlive();
