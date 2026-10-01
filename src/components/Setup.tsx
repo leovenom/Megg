@@ -47,7 +47,7 @@ export function Setup({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(13rem+env(safe-area-inset-bottom))] pt-8">
-      <header className="mb-8 flex items-end gap-3 overflow-visible">
+      <header className="mb-8 flex items-end gap-5 overflow-visible">
         {/* 20px = px-5 / padding-inline: calc(var(--spacing) * 5) */}
         <span
           className="relative block shrink-0 self-end overflow-visible"
