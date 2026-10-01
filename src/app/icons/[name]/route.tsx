@@ -29,8 +29,9 @@ export async function GET(_req: Request, ctx: RouteContext<"/icons/[name]">) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          // Full-bleed square: iOS Now Playing uses these PNGs in a square frame;
+          // rounded corners left white/empty wedges in the lock-screen artwork.
           background: "#F5A623",
-          borderRadius: maskable ? 0 : size * 0.22,
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- rendered by ImageResponse, not the browser */}
