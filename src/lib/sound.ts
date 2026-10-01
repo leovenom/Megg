@@ -5,9 +5,16 @@ let chimeUrl: Promise<string> | null = null;
 const CHIME_EVERY = 2.4;
 const ALARM_SECONDS = 90;
 const VIBRATE = [120, 80, 120, 80, 240];
+/** Match the Sep 26 music-box level — 0.28 made overlapping phrases sound muddy. */
+const NOTE_VOLUME = 0.22;
 
-/** The planned alarm window on the AudioContext clock; `out` exists once its sources are scheduled. */
-let alarm: { startAt: number; endAt: number; out?: GainNode } | null = null;
+/** Pre-scheduled Web Audio alarm (lock-screen backup); `sources` must be stopped on cancel. */
+let alarm: {
+  startAt: number;
+  endAt: number;
+  out?: GainNode;
+  sources: AudioBufferSourceNode[];
+} | null = null;
 
 function audioContextCtor() {
   return (
@@ -40,7 +47,7 @@ export function wakeAudio(): Promise<void> {
   return ctx.resume().then(() => undefined).catch(() => undefined);
 }
 
-function musicBoxNote(ac: BaseAudioContext, dest: AudioNode, freq: number, at: number, volume = 0.28) {
+function musicBoxNote(ac: BaseAudioContext, dest: AudioNode, freq: number, at: number, volume = NOTE_VOLUME) {
   const out = ac.createGain();
   out.gain.setValueAtTime(0.0001, at);
   out.gain.exponentialRampToValueAtTime(volume, at + 0.012);
@@ -77,7 +84,7 @@ function playChime(ac: BaseAudioContext, dest: AudioNode, at: number) {
   for (const [freq, offset] of MELODY) musicBoxNote(ac, dest, freq, at + offset);
 }
 
-/** One chime period rendered offline, so the whole alarm is a single looping source. */
+/** One chime period rendered offline — used only for the HTMLAudio lock-screen path. */
 async function renderChime(sampleRate: number): Promise<AudioBuffer | null> {
   try {
     const Offline =
@@ -123,7 +130,6 @@ async function buildChimeUrl() {
   const rate = ctx?.sampleRate ?? 22050;
   const buffer = await (chime ??= renderChime(rate));
   if (buffer) return audioBufferToWavUrl(buffer);
-  // OfflineAudioContext can fail on some iOS builds — still need an HTMLAudio chime.
   return fallbackChimeUrl(rate);
 }
 
@@ -153,7 +159,7 @@ function fallbackChimeUrl(rate: number) {
       const local = t - offset;
       if (local < 0 || local > 1.1) continue;
       const env = Math.exp(-local * 3.2) * (local < 0.012 ? local / 0.012 : 1);
-      sample += Math.sin(2 * Math.PI * freq * local) * env * 0.22;
+      sample += Math.sin(2 * Math.PI * freq * local) * env * NOTE_VOLUME;
     }
     view.setInt16(44 + i * 2, Math.max(-1, Math.min(1, sample)) * 0x7fff, true);
   }
@@ -178,6 +184,7 @@ function armSources(ac: AudioContext, plan: NonNullable<typeof alarm>, buffer: A
     src.buffer = buffer;
     src.loop = true;
     src.connect(out);
+    plan.sources.push(src);
     src.start(at);
     src.stop(plan.endAt);
     return;
@@ -185,11 +192,14 @@ function armSources(ac: AudioContext, plan: NonNullable<typeof alarm>, buffer: A
   for (let i = 0; i * CHIME_EVERY < ALARM_SECONDS; i++) playChime(ac, out, at + i * CHIME_EVERY);
 }
 
-/** Queues the alarm on the audio clock so it rings on time even if the page's JS is throttled. */
+/**
+ * Backup only: queues a looping buffer on the audio clock when JS may be frozen.
+ * Prefer the HTML keep-alive path; always cancel before starting the classic alarm.
+ */
 export function scheduleAlarm(delaySeconds: number) {
   cancelAlarm();
   if (!ctx) return;
-  const plan: NonNullable<typeof alarm> = { startAt: 0, endAt: 0 };
+  const plan: NonNullable<typeof alarm> = { startAt: 0, endAt: 0, sources: [] };
   alarm = plan;
   void (async () => {
     await wakeAudio();
@@ -207,13 +217,22 @@ export function scheduleAlarm(delaySeconds: number) {
 }
 
 export function cancelAlarm() {
-  const out = alarm?.out;
+  const plan = alarm;
   alarm = null;
-  if (!out || !ctx) return;
+  if (!plan) return;
+  for (const src of plan.sources) {
+    try {
+      src.stop();
+    } catch {}
+    try {
+      src.disconnect();
+    } catch {}
+  }
+  if (!plan.out || !ctx) return;
   try {
-    out.gain.cancelScheduledValues(ctx.currentTime);
-    out.gain.setValueAtTime(0, ctx.currentTime);
-    out.disconnect();
+    plan.out.gain.cancelScheduledValues(ctx.currentTime);
+    plan.out.gain.setValueAtTime(0, ctx.currentTime);
+    plan.out.disconnect();
   } catch {}
 }
 
@@ -231,15 +250,29 @@ export function startAlarmVibrate() {
 }
 
 /**
- * Rings now via Web Audio. Prefer `ringHtmlAlarm` on the Done screen — that path
- * survives lock on iOS; calling both stacks two identical chimes on top of each other.
+ * Classic Sep 26 alarm: one music-box phrase every 2.4s via Web Audio.
+ * Do not combine with `ringHtmlAlarm` — that stacks two identical melodies.
  */
 export function startAlarm() {
   if (!ctx) unlockAudio();
-  scheduleAlarm(0);
+  cancelAlarm();
+  void wakeAudio();
+
+  const tick = () => {
+    if (!ctx) return;
+    void wakeAudio();
+    playChime(ctx, ctx.destination, ctx.currentTime + 0.02);
+  };
+  tick();
+  const loop = window.setInterval(tick, CHIME_EVERY * 1000);
   const stopVibrate = startAlarmVibrate();
-  return () => {
+  const timeout = window.setTimeout(stop, ALARM_SECONDS * 1000);
+
+  function stop() {
+    window.clearInterval(loop);
+    window.clearTimeout(timeout);
     stopVibrate();
     cancelAlarm();
-  };
+  }
+  return stop;
 }

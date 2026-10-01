@@ -2,8 +2,18 @@
 
 import { MotionConfig, motion } from "motion/react";
 import { useEffect, useRef } from "react";
-import { clearDoneNotification, clearMediaPosition, resumeKeepAlive, ringHtmlAlarm, setMediaHandlers, setMediaInfo, stopKeepAlive } from "@/lib/background";
-import { startAlarmVibrate, unlockAudio, wakeAudio } from "@/lib/sound";
+import {
+  clearDoneNotification,
+  clearMediaPosition,
+  isHtmlAlarmPlaying,
+  pauseKeepAlive,
+  resumeKeepAlive,
+  ringHtmlAlarm,
+  setMediaHandlers,
+  setMediaInfo,
+  stopKeepAlive,
+} from "@/lib/background";
+import { cancelAlarm, startAlarm, unlockAudio, wakeAudio } from "@/lib/sound";
 import { Egg, HalfEgg } from "./Egg";
 import { Credit } from "./Credit";
 import type { DonenessId } from "@/lib/eggs";
@@ -51,14 +61,41 @@ export function Done({
   useEffect(() => {
     unlockAudio();
     void wakeAudio();
-    resumeKeepAlive();
-    // HTMLAudio only — Web Audio + HTML was stacking two identical chimes.
-    void ringHtmlAlarm(t.doneTitle);
-    const stopVibrate = startAlarmVibrate();
     clearMediaPosition();
+
+    // One source only: classic Web Audio phrases (Sep 26) when the screen is on;
+    // HTML loop when already ringing from the lock-screen cook clock (or if we lock mid-alarm).
+    let stop: (() => void) | null = null;
+
+    const armClassic = () => {
+      cancelAlarm();
+      pauseKeepAlive();
+      stop?.();
+      stop = startAlarm();
+    };
+    const armHtml = () => {
+      stop?.();
+      stop = null;
+      cancelAlarm();
+      void ringHtmlAlarm(t.doneTitle);
+      resumeKeepAlive();
+    };
+
+    if (isHtmlAlarmPlaying() || document.visibilityState === "hidden") {
+      armHtml();
+    } else {
+      armClassic();
+    }
+
+    const onVis = () => {
+      if (document.visibilityState === "hidden") armHtml();
+    };
+    document.addEventListener("visibilitychange", onVis);
     const unwire = setMediaHandlers({ pause: () => resetRef.current() });
     return () => {
-      stopVibrate();
+      document.removeEventListener("visibilitychange", onVis);
+      stop?.();
+      cancelAlarm();
       unwire();
       stopKeepAlive();
       void clearDoneNotification();

@@ -81,7 +81,10 @@ function onKeepAliveTick() {
   publishCookTitle(Math.ceil(leftMs / 1000), watch.album, true);
   if (leftMs <= 0) {
     watch.done = true;
-    void ringHtmlAlarm();
+    // Only the HTML chime when locked — foreground Done uses the classic Web Audio phrases.
+    if (document.visibilityState === "hidden") {
+      void ringHtmlAlarm();
+    }
     watch.onDone();
   }
 }
@@ -202,6 +205,11 @@ export function updateCookAlbum(album: string) {
   cookWatch.album = album;
   const leftSec = Math.ceil(Math.max(0, cookWatch.endAt - Date.now()) / 1000);
   publishCookTitle(leftSec, album, true);
+}
+
+/** True once the keep-alive element is the looping HTML chime (lock-screen path). */
+export function isHtmlAlarmPlaying() {
+  return htmlAlarmArmed && mode === "chime";
 }
 
 /** Swap the keep-alive element to the looping chime — audible while the phone is locked. */

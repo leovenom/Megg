@@ -14,7 +14,7 @@ import {
 } from "@/lib/background";
 import { formatTime, type DonenessId } from "@/lib/eggs";
 import { useT } from "@/lib/i18n";
-import { cancelAlarm, scheduleAlarm, wakeAudio } from "@/lib/sound";
+import { cancelAlarm, wakeAudio } from "@/lib/sound";
 import { Egg, eggOutline } from "./Egg";
 import { Credit } from "./Credit";
 
@@ -68,8 +68,8 @@ export function Timer({
   useEffect(() => {
     if (paused) return;
     const endAt = Date.now() + remainingMs.current;
-    scheduleAlarm(remainingMs.current / 1000);
-    // Lock-screen path: timeupdate on the silent <audio> keeps the clock + alarm alive.
+    // No Web Audio schedule during cook — it was stacking with the HTML chime at Done.
+    // Lock-screen path: silent <audio> timeupdate keeps the clock + rings HTML at the end.
     const stopWatch = watchCookClock({
       endAt,
       totalSeconds: total,
@@ -112,9 +112,7 @@ export function Timer({
       if (document.visibilityState !== "visible") return;
       wakeAudio();
       resumeKeepAlive();
-      const left = update();
-      // The audio clock may have been frozen in the background; realign the alarm to the wall clock.
-      if (left > 0) scheduleAlarm(left / 1000);
+      update();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
@@ -122,7 +120,6 @@ export function Timer({
       cancelAnimationFrame(raf);
       window.clearTimeout(fallback);
       document.removeEventListener("visibilitychange", onVisible);
-      // Always drop the Web Audio schedule — Done owns the audible alarm via HTMLAudio.
       cancelAlarm();
     };
   }, [paused, total, progress, subtitle]);
