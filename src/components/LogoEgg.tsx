@@ -27,6 +27,10 @@ const CRACK_SEAM =
 
 const LIVE = { reducedMotion: "never" as const };
 
+/** Horizontal padding so opening shell halves stay inside the SVG (avoids main overflow-x clip). */
+const PEEL_PAD = 36;
+const PEEL_PAD_RATIO = (100 + PEEL_PAD * 2) / 100;
+
 export function LogoEgg({ size = 60 }: { size?: number }) {
   const [phase, setPhase] = useState<Phase>("hop");
   const y = useMotionValue(0);
@@ -152,9 +156,10 @@ export function LogoEgg({ size = 60 }: { size?: number }) {
   return (
     <MotionConfig reducedMotion="never">
       <motion.span
-        className="block origin-bottom"
+        className="block origin-bottom overflow-visible"
         style={{
-          width: size,
+          // Extra width so peel halves stay inside the box (main has overflow-x-hidden).
+          width: size * PEEL_PAD_RATIO,
           height: size * 1.3,
           y,
           scaleX: sx,
@@ -163,7 +168,6 @@ export function LogoEgg({ size = 60 }: { size?: number }) {
           transformPerspective: 520,
           transformStyle: "preserve-3d",
           willChange: "transform",
-          overflow: "visible",
         }}
       >
         <EggArt size={size} phase={phase} />
@@ -176,9 +180,18 @@ function EggArt({ size, phase }: { size: number; phase: Phase }) {
   const id = useId();
   const peeled = phase === "peel" || phase === "shy" || phase === "butt";
   const showTopCrack = phase === "crack" || phase === "cry";
+  const svgW = size * PEEL_PAD_RATIO;
+  const svgH = size * 1.3;
 
   return (
-    <svg viewBox="0 0 100 130" width={size} height={size * 1.3} aria-hidden className="overflow-visible">
+    <svg
+      viewBox={`${-PEEL_PAD} 0 ${100 + PEEL_PAD * 2} 130`}
+      width={svgW}
+      height={svgH}
+      aria-hidden
+      className="overflow-visible"
+      style={{ overflow: "visible" }}
+    >
       <defs>
         <radialGradient id={`${id}-peeled`} cx="36%" cy="30%" r="80%">
           <stop offset="0%" stopColor={PEELED[0]} />
@@ -197,10 +210,10 @@ function EggArt({ size, phase }: { size: number; phase: Phase }) {
           <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
         </radialGradient>
         <clipPath id={`${id}-leftCrack`}>
-          <path d="M0 0 L50 4 L48 10 L53 16 L46 24 L52 32 L45 40 L54 48 L47 56 L53 64 L46 74 L52 84 L47 94 L53 104 L48 114 L50 126 L0 130 Z" />
+          <path d={`M${-PEEL_PAD} 0 L50 4 L48 10 L53 16 L46 24 L52 32 L45 40 L54 48 L47 56 L53 64 L46 74 L52 84 L47 94 L53 104 L48 114 L50 126 L${-PEEL_PAD} 130 Z`} />
         </clipPath>
         <clipPath id={`${id}-rightCrack`}>
-          <path d="M100 0 L50 4 L48 10 L53 16 L46 24 L52 32 L45 40 L54 48 L47 56 L53 64 L46 74 L52 84 L47 94 L53 104 L48 114 L50 126 L100 130 Z" />
+          <path d={`M${100 + PEEL_PAD} 0 L50 4 L48 10 L53 16 L46 24 L52 32 L45 40 L54 48 L47 56 L53 64 L46 74 L52 84 L47 94 L53 104 L48 114 L50 126 L${100 + PEEL_PAD} 130 Z`} />
         </clipPath>
       </defs>
 
@@ -231,8 +244,8 @@ function EggArt({ size, phase }: { size: number; phase: Phase }) {
         <>
           <motion.g
             clipPath={`url(#${id}-leftCrack)`}
-            initial={{ x: 0, rotate: 0 }}
-            animate={{ x: -12, rotate: -8 }}
+            initial={{ transform: "translate(0px, 0px) rotate(0deg)" }}
+            animate={{ transform: "translate(-10px, 0px) rotate(-8deg)" }}
             transition={{ duration: 0.9, ease: [0.23, 1, 0.32, 1] }}
             style={{ transformOrigin: "50px 70px" }}
           >
@@ -242,8 +255,8 @@ function EggArt({ size, phase }: { size: number; phase: Phase }) {
           </motion.g>
           <motion.g
             clipPath={`url(#${id}-rightCrack)`}
-            initial={{ x: 0, rotate: 0 }}
-            animate={{ x: 12, rotate: 8 }}
+            initial={{ transform: "translate(0px, 0px) rotate(0deg)" }}
+            animate={{ transform: "translate(10px, 0px) rotate(8deg)" }}
             transition={{ duration: 0.9, ease: [0.23, 1, 0.32, 1], delay: 0.05 }}
             style={{ transformOrigin: "50px 70px" }}
           >

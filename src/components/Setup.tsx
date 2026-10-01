@@ -48,11 +48,9 @@ export function Setup({
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(13rem+env(safe-area-inset-bottom))] pt-8">
       <header className="mb-8 flex items-center gap-3 overflow-visible">
-        {/* Wide enough for peel halves (±x) — main has overflow-x-hidden and would clip a 30px slot. */}
-        <span className="relative block h-[44px] w-[52px] shrink-0 overflow-visible">
-          <span className="absolute left-1/2 top-0 origin-top -translate-x-1/2 scale-50 overflow-visible">
-            <LogoEgg size={60} />
-          </span>
+        {/* Native size (no scale-50): peel padding lives inside the SVG so overflow-x-hidden won't clip. */}
+        <span className="relative block h-[39px] w-[52px] shrink-0 overflow-visible">
+          <LogoEgg size={30} />
         </span>
         <div>
           <h1 className="font-display text-3xl leading-none tracking-tight">Megg</h1>
