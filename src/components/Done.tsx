@@ -2,8 +2,8 @@
 
 import { MotionConfig, motion } from "motion/react";
 import { useEffect, useRef } from "react";
-import { clearDoneNotification, clearMediaPosition, setMediaHandlers, setMediaInfo, stopKeepAlive } from "@/lib/background";
-import { startAlarm } from "@/lib/sound";
+import { clearDoneNotification, clearMediaPosition, resumeKeepAlive, ringHtmlAlarm, setMediaHandlers, setMediaInfo, stopKeepAlive } from "@/lib/background";
+import { startAlarm, unlockAudio, wakeAudio } from "@/lib/sound";
 import { Egg, HalfEgg } from "./Egg";
 import { Credit } from "./Credit";
 import type { DonenessId } from "@/lib/eggs";
@@ -49,6 +49,10 @@ export function Done({
   }, [onReset]);
 
   useEffect(() => {
+    unlockAudio();
+    void wakeAudio();
+    resumeKeepAlive();
+    void ringHtmlAlarm(t.doneTitle);
     const stop = startAlarm();
     clearMediaPosition();
     const unwire = setMediaHandlers({ pause: () => resetRef.current() });
@@ -58,6 +62,8 @@ export function Done({
       stopKeepAlive();
       void clearDoneNotification();
     };
+    // Intentionally once on mount — re-running would cut the alarm on language change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

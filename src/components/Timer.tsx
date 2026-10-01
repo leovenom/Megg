@@ -10,6 +10,7 @@ import {
   setMediaInfo,
   setMediaPosition,
   stopKeepAlive,
+  watchCookClock,
 } from "@/lib/background";
 import { formatTime, type DonenessId } from "@/lib/eggs";
 import { useT } from "@/lib/i18n";
@@ -68,6 +69,22 @@ export function Timer({
     if (paused) return;
     const endAt = Date.now() + remainingMs.current;
     scheduleAlarm(remainingMs.current / 1000);
+    // Lock-screen path: timeupdate on the silent <audio> keeps the clock + alarm alive.
+    const stopWatch = watchCookClock({
+      endAt,
+      totalSeconds: total,
+      album: subtitle,
+      onTick: (leftMs) => {
+        remainingMs.current = leftMs;
+        progress.set(1 - leftMs / (total * 1000));
+        setSecondsLeft(Math.ceil(leftMs / 1000));
+      },
+      onDone: () => {
+        if (finished.current) return;
+        finished.current = true;
+        doneRef.current();
+      },
+    });
     let raf = 0;
     const update = () => {
       const left = Math.max(0, endAt - Date.now());
@@ -94,18 +111,20 @@ export function Timer({
     const onVisible = () => {
       if (document.visibilityState !== "visible") return;
       wakeAudio();
+      resumeKeepAlive();
       const left = update();
       // The audio clock may have been frozen in the background; realign the alarm to the wall clock.
       if (left > 0) scheduleAlarm(left / 1000);
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
+      stopWatch();
       cancelAnimationFrame(raf);
       window.clearTimeout(fallback);
       document.removeEventListener("visibilitychange", onVisible);
       if (!finished.current) cancelAlarm();
     };
-  }, [paused, total, progress]);
+  }, [paused, total, progress, subtitle]);
 
   useEffect(() => {
     resumeKeepAlive();

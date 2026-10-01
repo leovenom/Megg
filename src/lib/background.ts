@@ -2,7 +2,14 @@
  * Helpers that keep the alarm audible when the screen locks or the user switches apps:
  * a near-silent looping <audio> + Media Session (lock screen controls), notifications
  * and the service worker that shows them.
+ *
+ * While locked, iOS throttles timers/rAF and suspends AudioContext, but a playing
+ * <audio> keeps getting `timeupdate` — that tick drives the lock-screen clock and
+ * can swap the element to the chime when the cook ends.
  */
+
+import { formatTime } from "@/lib/eggs";
+import { getChimeUrl } from "@/lib/sound";
 
 const DONE_TAG = "megg-done";
 const ARTWORK: MediaImage[] = [
@@ -11,6 +18,16 @@ const ARTWORK: MediaImage[] = [
 ];
 
 let keepAlive: HTMLAudioElement | null = null;
+let silentUrl: string | null = null;
+let mode: "silent" | "chime" = "silent";
+let cookWatch: {
+  endAt: number;
+  totalSeconds: number;
+  album: string;
+  onTick: (leftMs: number) => void;
+  onDone: () => void;
+  done: boolean;
+} | null = null;
 
 /**
  * 6 s of 16-bit mono PCM with a ±10 LSB 250 Hz square (≈ -70 dBFS): inaudible, but not digital silence,
@@ -38,16 +55,48 @@ function keepAliveUrl() {
   return URL.createObjectURL(new Blob([view.buffer], { type: "audio/wav" }));
 }
 
+function onKeepAliveTick() {
+  const watch = cookWatch;
+  if (!watch || watch.done || mode !== "silent") return;
+  const leftMs = Math.max(0, watch.endAt - Date.now());
+  watch.onTick(leftMs);
+  const leftSec = Math.ceil(leftMs / 1000);
+  const elapsed = Math.min(watch.totalSeconds, Math.max(0, watch.totalSeconds - leftMs / 1000));
+  setMediaInfo(formatTime(leftSec), "Megg", watch.album);
+  setMediaPosition(watch.totalSeconds, elapsed, true);
+  if (leftMs <= 0) {
+    watch.done = true;
+    // Flip mode before the async chime load so further ticks can't re-enter.
+    mode = "chime";
+    void ringHtmlAlarm();
+    watch.onDone();
+  }
+}
+
 /** Call from the Start tap: iOS only lets an <audio> element play from a user gesture the first time. */
 export function startKeepAlive() {
   if (typeof window === "undefined") return;
   const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
   if (session) session.type = "playback";
   if (!keepAlive) {
-    keepAlive = new Audio(keepAliveUrl());
+    silentUrl ??= keepAliveUrl();
+    keepAlive = new Audio(silentUrl);
     keepAlive.loop = true;
     keepAlive.setAttribute("playsinline", "");
+    keepAlive.addEventListener("timeupdate", onKeepAliveTick);
+    // Some iOS builds throttle timeupdate while locked; ended still fires if loop is off.
+    keepAlive.addEventListener("ended", onKeepAliveTick);
   }
+  // Only reload when leaving the chime — comparing blob URLs is unreliable after the browser absolutizes src.
+  if (mode === "chime" && silentUrl) {
+    mode = "silent";
+    keepAlive.loop = true;
+    keepAlive.src = silentUrl;
+  } else {
+    mode = "silent";
+    keepAlive.loop = true;
+  }
+  void getChimeUrl();
   resumeKeepAlive();
 }
 
@@ -61,10 +110,54 @@ export function pauseKeepAlive() {
 
 export function stopKeepAlive() {
   pauseKeepAlive();
+  cookWatch = null;
+  if (keepAlive && silentUrl) {
+    mode = "silent";
+    keepAlive.loop = true;
+    keepAlive.src = silentUrl;
+  }
   const ms = mediaSession();
   if (!ms) return;
   ms.metadata = null;
   ms.playbackState = "none";
+}
+
+/**
+ * Drive lock-screen time + completion off the playing <audio> element (survives lock).
+ * Returns a stop function.
+ */
+export function watchCookClock(opts: {
+  endAt: number;
+  totalSeconds: number;
+  album: string;
+  onTick: (leftMs: number) => void;
+  onDone: () => void;
+}) {
+  cookWatch = { ...opts, done: false };
+  onKeepAliveTick();
+  return () => {
+    if (cookWatch?.onDone === opts.onDone) cookWatch = null;
+  };
+}
+
+/** Swap the keep-alive element to the looping chime — audible while the phone is locked. */
+export async function ringHtmlAlarm(title = "Megg") {
+  if (!keepAlive) startKeepAlive();
+  if (!keepAlive) return;
+  mode = "chime";
+  cookWatch = null;
+  const url = await getChimeUrl();
+  if (!url) return;
+  keepAlive.loop = true;
+  keepAlive.src = url;
+  try {
+    keepAlive.currentTime = 0;
+  } catch {}
+  void keepAlive.play().catch(() => {});
+  setMediaInfo(title, "Megg", "");
+  clearMediaPosition();
+  const ms = mediaSession();
+  if (ms) ms.playbackState = "playing";
 }
 
 function mediaSession() {
@@ -81,8 +174,13 @@ export function setMediaPosition(duration: number, position: number, playing: bo
   const ms = mediaSession();
   if (!ms) return;
   ms.playbackState = playing ? "playing" : "paused";
+  if (!(duration > 0) || !Number.isFinite(duration) || !Number.isFinite(position)) return;
   try {
-    ms.setPositionState?.({ duration, position: Math.min(duration, Math.max(0, position)), playbackRate: 1 });
+    ms.setPositionState?.({
+      duration,
+      position: Math.min(duration, Math.max(0, position)),
+      playbackRate: 1,
+    });
   } catch {}
 }
 
