@@ -1,11 +1,10 @@
 /**
  * Helpers that keep the alarm audible when the screen locks or the user switches apps:
- * a near-silent looping <audio> + Media Session (lock screen controls), notifications
+ * a near-silent <audio> + Media Session (lock screen controls), notifications
  * and the service worker that shows them.
  *
- * While locked, iOS throttles timers/rAF and suspends AudioContext, but a playing
- * <audio> keeps getting `timeupdate` — that tick drives the lock-screen clock and
- * can swap the element to the chime when the cook ends.
+ * The silent track duration matches the cook so iOS's native scrubber (0:xx / -y:yy)
+ * is the real egg timer — not a looping 6s stub fighting setPositionState.
  */
 
 import { formatTime } from "@/lib/eggs";
@@ -13,13 +12,15 @@ import { SITE_URL } from "@/lib/site";
 import { getChimeUrl } from "@/lib/sound";
 
 const DONE_TAG = "megg-done";
-/** Dedicated full-bleed square (?v=) so iOS doesn't keep a rounded/cached icon with white corners. */
+/** JPEG (no alpha) + cache bust — PNG corners were showing as white on the lock screen. */
 const ARTWORK: MediaImage[] = [
-  { src: `${SITE_URL}/icons/now-playing.png?v=2`, sizes: "512x512", type: "image/png" },
+  { src: `${SITE_URL}/icons/now-playing.jpg?v=3`, sizes: "512x512", type: "image/jpeg" },
 ];
 
 let keepAlive: HTMLAudioElement | null = null;
-let silentUrl: string | null = null;
+/** Short bootstrap stub used only until the cook-length track is ready. */
+let stubUrl: string | null = null;
+let cookSilentUrl: string | null = null;
 let mode: "silent" | "chime" = "silent";
 let cookWatch: {
   endAt: number;
@@ -31,15 +32,14 @@ let cookWatch: {
 } | null = null;
 /** Avoid rebuilding Now Playing metadata every timeupdate — that reloads artwork and flickers. */
 let lastMediaKey = "";
-let lastPositionSec = -1;
 
 /**
- * 6 s of 16-bit mono PCM with a ±10 LSB 250 Hz square (≈ -70 dBFS): inaudible, but not digital silence,
- * which some browsers treat as "not playing". Chrome only shows lock-screen controls for media ≥ 5 s.
+ * Near-silent PCM (±10 LSB @ 250 Hz). Not digital silence (browsers may ignore that).
+ * Duration is the cook length so the lock-screen scrubber matches wall-clock progress.
  */
-function keepAliveUrl() {
+function silentWavUrl(seconds: number) {
   const rate = 8000;
-  const samples = rate * 6;
+  const samples = Math.max(rate * 5, Math.round(seconds * rate)); // ≥5s for Chrome Now Playing
   const view = new DataView(new ArrayBuffer(44 + samples * 2));
   const str = (at: number, s: string) => [...s].forEach((c, i) => view.setUint8(at + i, c.charCodeAt(0)));
   str(0, "RIFF");
@@ -59,24 +59,14 @@ function keepAliveUrl() {
   return URL.createObjectURL(new Blob([view.buffer], { type: "audio/wav" }));
 }
 
-function publishCookClock(leftSec: number, album: string, playing: boolean) {
-  const watch = cookWatch;
+function publishCookTitle(leftSec: number, album: string, playing: boolean) {
   const title = formatTime(leftSec);
   const key = `${title}\0${album}\0${playing ? 1 : 0}`;
-  // Metadata only when the second (or album/playing) changes — artwork reload every
-  // timeupdate was what made the lock-screen widget flicker.
-  if (key !== lastMediaKey) {
-    lastMediaKey = key;
-    setMediaInfo(title, "Megg", album);
-  }
+  if (key === lastMediaKey) return;
+  lastMediaKey = key;
+  setMediaInfo(title, "Megg", album);
   const ms = mediaSession();
   if (ms) ms.playbackState = playing ? "playing" : "paused";
-  // Drive the scrubber from wall-clock cook progress (not the 6s silent loop).
-  if (watch && leftSec !== lastPositionSec) {
-    lastPositionSec = leftSec;
-    const elapsed = Math.min(watch.totalSeconds, Math.max(0, watch.totalSeconds - leftSec));
-    setMediaPosition(watch.totalSeconds, elapsed, playing);
-  }
 }
 
 function onKeepAliveTick() {
@@ -84,14 +74,43 @@ function onKeepAliveTick() {
   if (!watch || watch.done || mode !== "silent") return;
   const leftMs = Math.max(0, watch.endAt - Date.now());
   watch.onTick(leftMs);
-  publishCookClock(Math.ceil(leftMs / 1000), watch.album, true);
+  // Title = remaining cook time. Scrubber comes from the cook-length <audio> itself —
+  // do not call setPositionState (it fights the element and freezes / loops 0:0x of 6s).
+  publishCookTitle(Math.ceil(leftMs / 1000), watch.album, true);
   if (leftMs <= 0) {
     watch.done = true;
-    // Flip mode before the async chime load so further ticks can't re-enter.
     mode = "chime";
     void ringHtmlAlarm();
     watch.onDone();
   }
+}
+
+function ensureAudioElement() {
+  if (keepAlive) return keepAlive;
+  stubUrl ??= silentWavUrl(6);
+  keepAlive = new Audio(stubUrl);
+  keepAlive.setAttribute("playsinline", "");
+  keepAlive.addEventListener("timeupdate", onKeepAliveTick);
+  keepAlive.addEventListener("ended", onKeepAliveTick);
+  return keepAlive;
+}
+
+/** Load a silent track whose duration == cook length and seek to elapsed. */
+function armCookAudio(totalSeconds: number, elapsedSeconds: number) {
+  const el = ensureAudioElement();
+  if (cookSilentUrl) URL.revokeObjectURL(cookSilentUrl);
+  cookSilentUrl = silentWavUrl(totalSeconds);
+  mode = "silent";
+  el.loop = false;
+  el.src = cookSilentUrl;
+  const seek = () => {
+    try {
+      el.currentTime = Math.min(Math.max(0, elapsedSeconds), Math.max(0, totalSeconds - 0.05));
+    } catch {}
+    void el.play().catch(() => {});
+  };
+  if (el.readyState >= 1) seek();
+  else el.addEventListener("loadedmetadata", seek, { once: true });
 }
 
 /** Call from the Start tap: iOS only lets an <audio> element play from a user gesture the first time. */
@@ -99,23 +118,12 @@ export function startKeepAlive() {
   if (typeof window === "undefined") return;
   const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
   if (session) session.type = "playback";
-  if (!keepAlive) {
-    silentUrl ??= keepAliveUrl();
-    keepAlive = new Audio(silentUrl);
-    keepAlive.loop = true;
-    keepAlive.setAttribute("playsinline", "");
-    keepAlive.addEventListener("timeupdate", onKeepAliveTick);
-    // Some iOS builds throttle timeupdate while locked; ended still fires if loop is off.
-    keepAlive.addEventListener("ended", onKeepAliveTick);
-  }
-  // Only reload when leaving the chime — comparing blob URLs is unreliable after the browser absolutizes src.
-  if (mode === "chime" && silentUrl) {
-    mode = "silent";
-    keepAlive.loop = true;
-    keepAlive.src = silentUrl;
-  } else {
-    mode = "silent";
-    keepAlive.loop = true;
+  const el = ensureAudioElement();
+  mode = "silent";
+  if (!el.src) {
+    stubUrl ??= silentWavUrl(6);
+    el.src = stubUrl;
+    el.loop = true;
   }
   void getChimeUrl();
   resumeKeepAlive();
@@ -127,7 +135,7 @@ export function pauseKeepAlive() {
   if (ms) ms.playbackState = "paused";
   if (cookWatch && !cookWatch.done) {
     const leftSec = Math.ceil(Math.max(0, cookWatch.endAt - Date.now()) / 1000);
-    publishCookClock(leftSec, cookWatch.album, false);
+    publishCookTitle(leftSec, cookWatch.album, false);
   }
 }
 
@@ -137,27 +145,36 @@ export function resumeKeepAlive() {
   if (ms && mode === "silent") ms.playbackState = "playing";
   if (cookWatch && !cookWatch.done && mode === "silent") {
     const leftSec = Math.ceil(Math.max(0, cookWatch.endAt - Date.now()) / 1000);
-    publishCookClock(leftSec, cookWatch.album, true);
+    publishCookTitle(leftSec, cookWatch.album, true);
   }
 }
 
 export function stopKeepAlive() {
   pauseKeepAlive();
   cookWatch = null;
-  if (keepAlive && silentUrl) {
+  lastMediaKey = "";
+  if (keepAlive) {
     mode = "silent";
-    keepAlive.loop = true;
-    keepAlive.src = silentUrl;
+    keepAlive.pause();
+    if (stubUrl) {
+      keepAlive.loop = true;
+      keepAlive.src = stubUrl;
+    }
+  }
+  if (cookSilentUrl) {
+    URL.revokeObjectURL(cookSilentUrl);
+    cookSilentUrl = null;
   }
   const ms = mediaSession();
   if (!ms) return;
   ms.metadata = null;
   ms.playbackState = "none";
+  clearMediaPosition();
 }
 
 /**
  * Drive lock-screen time + completion off the playing <audio> element (survives lock).
- * Returns a stop function.
+ * Arms a silent track of `totalSeconds` so the scrubber matches the cook.
  */
 export function watchCookClock(opts: {
   endAt: number;
@@ -166,9 +183,11 @@ export function watchCookClock(opts: {
   onTick: (leftMs: number) => void;
   onDone: () => void;
 }) {
+  const elapsed = Math.max(0, opts.totalSeconds - (opts.endAt - Date.now()) / 1000);
   cookWatch = { ...opts, done: false };
   lastMediaKey = "";
-  lastPositionSec = -1;
+  armCookAudio(opts.totalSeconds, elapsed);
+  clearMediaPosition();
   onKeepAliveTick();
   return () => {
     if (cookWatch?.onDone === opts.onDone) cookWatch = null;
@@ -180,7 +199,7 @@ export function updateCookAlbum(album: string) {
   if (!cookWatch) return;
   cookWatch.album = album;
   const leftSec = Math.ceil(Math.max(0, cookWatch.endAt - Date.now()) / 1000);
-  publishCookClock(leftSec, album, true);
+  publishCookTitle(leftSec, album, true);
 }
 
 /** Swap the keep-alive element to the looping chime — audible while the phone is locked. */
@@ -197,6 +216,7 @@ export async function ringHtmlAlarm(title = "Megg") {
     keepAlive.currentTime = 0;
   } catch {}
   void keepAlive.play().catch(() => {});
+  lastMediaKey = "";
   setMediaInfo(title, "Megg", "");
   clearMediaPosition();
   const ms = mediaSession();
@@ -244,7 +264,6 @@ export function setMediaHandlers(handlers: { play?: () => void; pause?: () => vo
   };
   set("play", handlers.play);
   set("pause", handlers.pause);
-  // iOS Now Playing always looks like a music widget; hide skip/seek so it reads as a timer.
   for (const action of ["nexttrack", "previoustrack", "seekbackward", "seekforward", "seekto"] as const) {
     set(action, undefined);
   }
@@ -256,7 +275,6 @@ export function setMediaHandlers(handlers: { play?: () => void; pause?: () => vo
 
 let permissionRequest: Promise<unknown> | null = null;
 
-/** Call from the Start tap. Asks only once; never nags after a decision. */
 export function askNotifyPermission() {
   if (typeof Notification === "undefined" || Notification.permission !== "default") return;
   try {
@@ -275,7 +293,6 @@ async function registration() {
   return navigator.serviceWorker.getRegistration().catch(() => undefined);
 }
 
-/** Shows the "egg is ready" notification, only when the app isn't on screen. */
 export async function notifyDone(title: string, body: string) {
   if (document.visibilityState !== "hidden" || !(await canNotify())) return;
   const options = {
