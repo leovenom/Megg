@@ -12,7 +12,7 @@ import {
 } from "@/lib/eggs";
 import { LANGS, climateIndex, rich, useI18n, useT } from "@/lib/i18n";
 import { Egg, HalfEgg } from "./Egg";
-import { LogoEgg } from "./LogoEgg";
+import { LogoEgg, logoEggLeftInset } from "./LogoEgg";
 import { Credit } from "./Credit";
 
 export type Choice = {
@@ -48,8 +48,11 @@ export function Setup({
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(13rem+env(safe-area-inset-bottom))] pt-8">
       <header className="mb-8 flex items-end gap-3 overflow-visible">
-        {/* Bottom-aligned with the tagline; padded SVG width so peel doesn't clip. */}
-        <span className="relative block shrink-0 overflow-visible self-end">
+        {/* Nudge left by SVG peel-pad so the egg silhouette lines up with section h2s. */}
+        <span
+          className="relative block shrink-0 self-end overflow-visible"
+          style={{ marginLeft: -logoEggLeftInset(40) }}
+        >
           <LogoEgg size={40} />
         </span>
         <div className="min-w-0">

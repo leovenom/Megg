@@ -28,8 +28,10 @@ const CRACK_SEAM =
 const LIVE = { reducedMotion: "never" as const };
 
 /** Horizontal padding so opening shell halves stay inside the SVG (avoids main overflow-x clip). */
-const PEEL_PAD = 36;
-const PEEL_PAD_RATIO = (100 + PEEL_PAD * 2) / 100;
+export const PEEL_PAD = 36;
+export const PEEL_PAD_RATIO = (100 + PEEL_PAD * 2) / 100;
+/** Empty space to the left of the egg silhouette — pull this back to align with section titles. */
+export const logoEggLeftInset = (size: number) => (size * PEEL_PAD) / 100;
 
 export function LogoEgg({ size = 60 }: { size?: number }) {
   const [phase, setPhase] = useState<Phase>("hop");
