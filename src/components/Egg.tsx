@@ -171,7 +171,11 @@ export function HalfEgg({
         transform={shape.tilt ? `rotate(${shape.tilt} 50 80)` : undefined}
       />
       {doneness === "liquida" && (
-        <path d="M44 96 q6 18 12 0 q-6 4 -12 0 z" fill={y.outer} opacity="0.9" />
+        <path
+          d="M52 89 L62 89 L62.5 102 A5.5 5.5 0 0 1 51.5 102 Z"
+          fill={y.outer}
+          opacity="0.9"
+        />
       )}
       <circle cx="50" cy="80" r={y.r} fill={`url(#${id}-yolk)`} />
       {doneness === "firme" && <circle cx="50" cy="80" r={9} fill="#F5A935" opacity="0.8" />}

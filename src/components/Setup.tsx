@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   DONENESS,
@@ -12,6 +12,7 @@ import {
 } from "@/lib/eggs";
 import { LANGS, climateIndex, rich, useI18n, useT } from "@/lib/i18n";
 import { Egg, HalfEgg } from "./Egg";
+import { LogoEgg } from "./LogoEgg";
 import { Credit } from "./Credit";
 
 export type Choice = {
@@ -47,25 +48,9 @@ export function Setup({
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(13rem+env(safe-area-inset-bottom))] pt-8">
       <header className="mb-8 flex items-center gap-3">
-        <span className="relative block h-[39px] w-[30px] shrink-0">
-          <span className="absolute left-0 top-0 origin-top-left scale-50">
-            <MotionConfig reducedMotion="never">
-              <motion.span
-                className="block origin-bottom"
-                animate={{
-                  transform: [
-                    "translate3d(0,0,0) scale(1.06, 0.92)",
-                    "translate3d(0,-8px,0) scale(0.97, 1.05)",
-                    "translate3d(0,-22px,0) scale(1, 1)",
-                    "translate3d(0,-3px,0) scale(0.98, 1.03)",
-                    "translate3d(0,0,0) scale(1.06, 0.92)",
-                  ],
-                }}
-                transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.5, 0.88, 1] }}
-              >
-                <Egg size={60} face />
-              </motion.span>
-            </MotionConfig>
+        <span className="relative block h-[39px] w-[30px] shrink-0 overflow-visible">
+          <span className="absolute left-0 top-0 origin-top-left scale-50 overflow-visible">
+            <LogoEgg size={60} />
           </span>
         </span>
         <div>
