@@ -4,8 +4,8 @@ import { MotionConfig, animate, motion, useMotionValue, useReducedMotion } from 
 import { useEffect, useId, useState } from "react";
 
 /**
- * Header mascot: 3 hops → 4th hop then crack at rest (not apex), manga cry,
- * shell splits, shy face, 360 spin, thin Y butt + heart → repeat.
+ * Header mascot: 3 hops → 4th hop then crack at rest, manga cry,
+ * shell splits, shy face, 360 spin + Y butt → repeat.
  */
 
 type Phase = "hop" | "crack" | "cry" | "peel" | "shy" | "butt";
