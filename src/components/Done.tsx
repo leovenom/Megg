@@ -3,7 +3,7 @@
 import { MotionConfig, motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import { clearDoneNotification, clearMediaPosition, resumeKeepAlive, ringHtmlAlarm, setMediaHandlers, setMediaInfo, stopKeepAlive } from "@/lib/background";
-import { startAlarm, unlockAudio, wakeAudio } from "@/lib/sound";
+import { startAlarmVibrate, unlockAudio, wakeAudio } from "@/lib/sound";
 import { Egg, HalfEgg } from "./Egg";
 import { Credit } from "./Credit";
 import type { DonenessId } from "@/lib/eggs";
@@ -52,12 +52,13 @@ export function Done({
     unlockAudio();
     void wakeAudio();
     resumeKeepAlive();
+    // HTMLAudio only — Web Audio + HTML was stacking two identical chimes.
     void ringHtmlAlarm(t.doneTitle);
-    const stop = startAlarm();
+    const stopVibrate = startAlarmVibrate();
     clearMediaPosition();
     const unwire = setMediaHandlers({ pause: () => resetRef.current() });
     return () => {
-      stop();
+      stopVibrate();
       unwire();
       stopKeepAlive();
       void clearDoneNotification();

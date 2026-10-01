@@ -122,7 +122,8 @@ export function Timer({
       cancelAnimationFrame(raf);
       window.clearTimeout(fallback);
       document.removeEventListener("visibilitychange", onVisible);
-      if (!finished.current) cancelAlarm();
+      // Always drop the Web Audio schedule — Done owns the audible alarm via HTMLAudio.
+      cancelAlarm();
     };
   }, [paused, total, progress, subtitle]);
 

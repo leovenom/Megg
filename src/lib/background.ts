@@ -9,7 +9,7 @@
 
 import { formatTime } from "@/lib/eggs";
 import { SITE_URL } from "@/lib/site";
-import { getChimeUrl } from "@/lib/sound";
+import { cancelAlarm, getChimeUrl } from "@/lib/sound";
 
 const DONE_TAG = "megg-done";
 /** JPEG (no alpha) + cache bust — PNG corners were showing as white on the lock screen. */
@@ -22,6 +22,8 @@ let keepAlive: HTMLAudioElement | null = null;
 let stubUrl: string | null = null;
 let cookSilentUrl: string | null = null;
 let mode: "silent" | "chime" = "silent";
+/** True once the keep-alive element has been swapped to the looping chime. */
+let htmlAlarmArmed = false;
 let cookWatch: {
   endAt: number;
   totalSeconds: number;
@@ -79,7 +81,6 @@ function onKeepAliveTick() {
   publishCookTitle(Math.ceil(leftMs / 1000), watch.album, true);
   if (leftMs <= 0) {
     watch.done = true;
-    mode = "chime";
     void ringHtmlAlarm();
     watch.onDone();
   }
@@ -153,6 +154,7 @@ export function stopKeepAlive() {
   pauseKeepAlive();
   cookWatch = null;
   lastMediaKey = "";
+  htmlAlarmArmed = false;
   if (keepAlive) {
     mode = "silent";
     keepAlive.pause();
@@ -204,23 +206,42 @@ export function updateCookAlbum(album: string) {
 
 /** Swap the keep-alive element to the looping chime — audible while the phone is locked. */
 export async function ringHtmlAlarm(title = "Megg") {
+  // Stop any Web Audio schedule so we don't layer the same melody twice.
+  cancelAlarm();
   if (!keepAlive) startKeepAlive();
   if (!keepAlive) return;
+
+  const publish = () => {
+    lastMediaKey = "";
+    setMediaInfo(title, "Megg", "");
+    clearMediaPosition();
+    const ms = mediaSession();
+    if (ms) ms.playbackState = "playing";
+  };
+
+  // Already looping / arming the HTML chime (cook clock + Done both call this) — don't restart.
+  if (htmlAlarmArmed) {
+    publish();
+    void keepAlive.play().catch(() => {});
+    return;
+  }
+
+  // Claim before awaiting so a second call can't start another source.
+  htmlAlarmArmed = true;
   mode = "chime";
   cookWatch = null;
   const url = await getChimeUrl();
-  if (!url) return;
+  if (!url || mode !== "chime") {
+    htmlAlarmArmed = false;
+    return;
+  }
   keepAlive.loop = true;
   keepAlive.src = url;
   try {
     keepAlive.currentTime = 0;
   } catch {}
   void keepAlive.play().catch(() => {});
-  lastMediaKey = "";
-  setMediaInfo(title, "Megg", "");
-  clearMediaPosition();
-  const ms = mediaSession();
-  if (ms) ms.playbackState = "playing";
+  publish();
 }
 
 function mediaSession() {

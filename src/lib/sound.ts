@@ -217,14 +217,8 @@ export function cancelAlarm() {
   } catch {}
 }
 
-/**
- * Rings now. Always re-arms: a pre-scheduled window can look "active" on the audio
- * clock while iOS has the context suspended, so skipping would stay silent.
- */
-export function startAlarm() {
-  if (!ctx) unlockAudio();
-  scheduleAlarm(0);
-
+/** Pulse the vibrator for the alarm window; returns a stop handle. */
+export function startAlarmVibrate() {
   navigator.vibrate?.(VIBRATE);
   const loop = window.setInterval(() => navigator.vibrate?.(VIBRATE), CHIME_EVERY * 1000);
   const timeout = window.setTimeout(stop, ALARM_SECONDS * 1000);
@@ -232,7 +226,20 @@ export function startAlarm() {
     window.clearInterval(loop);
     window.clearTimeout(timeout);
     navigator.vibrate?.(0);
-    cancelAlarm();
   }
   return stop;
+}
+
+/**
+ * Rings now via Web Audio. Prefer `ringHtmlAlarm` on the Done screen — that path
+ * survives lock on iOS; calling both stacks two identical chimes on top of each other.
+ */
+export function startAlarm() {
+  if (!ctx) unlockAudio();
+  scheduleAlarm(0);
+  const stopVibrate = startAlarmVibrate();
+  return () => {
+    stopVibrate();
+    cancelAlarm();
+  };
 }
