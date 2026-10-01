@@ -48,12 +48,18 @@ export function Setup({
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(13rem+env(safe-area-inset-bottom))] pt-8">
       <header className="mb-8 flex items-end gap-3 overflow-visible">
-        {/* Nudge left by SVG peel-pad so the egg silhouette lines up with section h2s. */}
+        {/* Layout width = egg silhouette only; peel pad overflows so h1/p keep px-5 alignment with h2s. */}
         <span
           className="relative block shrink-0 self-end overflow-visible"
-          style={{ marginLeft: -logoEggLeftInset(40) }}
+          style={{
+            width: 40,
+            height: 40 * 1.3,
+            marginLeft: -logoEggLeftInset(40),
+          }}
         >
-          <LogoEgg size={40} />
+          <span className="absolute bottom-0 left-0 overflow-visible">
+            <LogoEgg size={40} />
+          </span>
         </span>
         <div className="min-w-0">
           <h1 className="font-display text-3xl leading-none tracking-tight">Megg</h1>
