@@ -1,11 +1,15 @@
 "use client";
 
-import { MotionConfig, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
+import { MotionConfig, animate, motion, useMotionValue } from "motion/react";
 import { useEffect, useId, useState } from "react";
 
 /**
  * Header mascot: 3 hops → 4th hop then crack at rest, manga cry,
  * shell splits, shy face, 360 spin + Y butt → repeat.
+ *
+ * Always runs on iOS even with Reduce Motion — same as the old header hop.
+ * Imperative `animate()` needs `reducedMotion: "never"`; MotionConfig alone
+ * does not cover the standalone animate() API.
  */
 
 type Phase = "hop" | "crack" | "cry" | "peel" | "shy" | "butt";
@@ -21,8 +25,9 @@ const EGG_PATH =
 const CRACK_SEAM =
   "M50 4 L48 10 L53 16 L46 24 L52 32 L45 40 L54 48 L47 56 L53 64 L46 74 L52 84 L47 94 L53 104 L48 114 L50 126";
 
+const LIVE = { reducedMotion: "never" as const };
+
 export function LogoEgg({ size = 60 }: { size?: number }) {
-  const reduce = useReducedMotion();
   const [phase, setPhase] = useState<Phase>("hop");
   const y = useMotionValue(0);
   const sx = useMotionValue(1.06);
@@ -30,7 +35,6 @@ export function LogoEgg({ size = 60 }: { size?: number }) {
   const rotY = useMotionValue(0);
 
   useEffect(() => {
-    if (reduce) return;
     let cancelled = false;
     const timers: number[] = [];
     const wait = (ms: number) =>
@@ -49,16 +53,19 @@ export function LogoEgg({ size = 60 }: { size?: number }) {
               duration: 0.8,
               times: [0, 0.15, 0.5, 0.88, 1],
               ease: "easeInOut",
+              ...LIVE,
             }),
             animate(sx, [1.06, 0.97, 1, 0.98, 1.06], {
               duration: 0.8,
               times: [0, 0.15, 0.5, 0.88, 1],
               ease: "easeInOut",
+              ...LIVE,
             }),
             animate(sy, [0.92, 1.05, 1, 1.03, 0.92], {
               duration: 0.8,
               times: [0, 0.15, 0.5, 0.88, 1],
               ease: "easeInOut",
+              ...LIVE,
             }),
           ]);
         }
@@ -70,16 +77,19 @@ export function LogoEgg({ size = 60 }: { size?: number }) {
             duration: 0.8,
             times: [0, 0.15, 0.5, 0.88, 1],
             ease: "easeInOut",
+            ...LIVE,
           }),
           animate(sx, [1.06, 0.97, 0.94, 0.98, 1.06], {
             duration: 0.8,
             times: [0, 0.15, 0.5, 0.88, 1],
             ease: "easeInOut",
+            ...LIVE,
           }),
           animate(sy, [0.92, 1.05, 1.08, 1.03, 0.92], {
             duration: 0.8,
             times: [0, 0.15, 0.5, 0.88, 1],
             ease: "easeInOut",
+            ...LIVE,
           }),
         ]);
         if (cancelled) return;
@@ -101,16 +111,18 @@ export function LogoEgg({ size = 60 }: { size?: number }) {
         // Full 360 whoosh → bundinha
         if (cancelled) return;
         const spin = Promise.all([
-          animate(rotY, 360, { duration: 1.05, ease: [0.22, 1, 0.36, 1] }),
+          animate(rotY, 360, { duration: 1.05, ease: [0.22, 1, 0.36, 1], ...LIVE }),
           animate(sx, [1.06, 0.88, 1.12, 1.06], {
             duration: 1.05,
             times: [0, 0.35, 0.7, 1],
             ease: "easeInOut",
+            ...LIVE,
           }),
           animate(sy, [0.92, 1.1, 0.9, 0.92], {
             duration: 1.05,
             times: [0, 0.35, 0.7, 1],
             ease: "easeInOut",
+            ...LIVE,
           }),
         ]);
         await wait(420);
@@ -135,15 +147,7 @@ export function LogoEgg({ size = 60 }: { size?: number }) {
       sy.stop();
       rotY.stop();
     };
-  }, [reduce, y, sx, sy, rotY]);
-
-  if (reduce) {
-    return (
-      <span className="block" style={{ width: size, height: size * 1.3 }}>
-        <EggArt size={size} phase="hop" />
-      </span>
-    );
-  }
+  }, [y, sx, sy, rotY]);
 
   return (
     <MotionConfig reducedMotion="never">
@@ -158,6 +162,7 @@ export function LogoEgg({ size = 60 }: { size?: number }) {
           rotateY: rotY,
           transformPerspective: 520,
           transformStyle: "preserve-3d",
+          willChange: "transform",
         }}
       >
         <EggArt size={size} phase={phase} />
@@ -190,7 +195,6 @@ function EggArt({ size, phase }: { size: number; phase: Phase }) {
           <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
           <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
         </radialGradient>
-        {/* Left / right halves follow the jagged crack seam */}
         <clipPath id={`${id}-leftCrack`}>
           <path d="M0 0 L50 4 L48 10 L53 16 L46 24 L52 32 L45 40 L54 48 L47 56 L53 64 L46 74 L52 84 L47 94 L53 104 L48 114 L50 126 L0 130 Z" />
         </clipPath>
@@ -245,7 +249,6 @@ function EggArt({ size, phase }: { size: number; phase: Phase }) {
             <path d={EGG_PATH} fill={`url(#${id}-shell)`} />
             <path d={CRACK_SEAM} stroke={STROKE} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.55" />
           </motion.g>
-          {/* Inner face — no blush */}
           <InnerFace />
         </>
       )}
@@ -360,7 +363,6 @@ function ButtY() {
         strokeLinejoin="round"
         fill="none"
       />
-      {/* Heart on the right buttock */}
       <path
         d="M68 92 C68 92 65 89 63 91 C61 93 63 96 68 100 C73 96 75 93 73 91 C71 89 68 92 68 92 Z"
         fill="#F4A7A0"
