@@ -16,7 +16,7 @@ type Phase = "hop" | "crack" | "cry" | "peel" | "shy" | "butt";
 
 const HOPS_BEFORE_CRACK = 3;
 const SHELL = ["#FFFDF8", "#F7EADA", "#E6CDAE", "#CFAF8A"] as const;
-const PEELED = ["#FFFFFF", "#FFF9F0", "#F3E8D8", "#E8D5BE"] as const;
+const PEELED = ["#FFFFFF", "#FFFEFC", "#F8F5F0", "#EFEAE3"] as const;
 const STROKE = "#5B4636";
 const EGG_PATH =
   "M50 4 C24 4 6 50 6 80 C6 108 26 126 50 126 C74 126 94 108 94 80 C94 50 76 4 50 4 Z";
