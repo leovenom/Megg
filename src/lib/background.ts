@@ -13,9 +13,9 @@ import { SITE_URL } from "@/lib/site";
 import { getChimeUrl } from "@/lib/sound";
 
 const DONE_TAG = "megg-done";
+/** Dedicated full-bleed square (?v=) so iOS doesn't keep a rounded/cached icon with white corners. */
 const ARTWORK: MediaImage[] = [
-  { src: `${SITE_URL}/icons/512.png`, sizes: "512x512", type: "image/png" },
-  { src: `${SITE_URL}/icons/192.png`, sizes: "192x192", type: "image/png" },
+  { src: `${SITE_URL}/icons/now-playing.png?v=2`, sizes: "512x512", type: "image/png" },
 ];
 
 let keepAlive: HTMLAudioElement | null = null;
@@ -31,6 +31,7 @@ let cookWatch: {
 } | null = null;
 /** Avoid rebuilding Now Playing metadata every timeupdate — that reloads artwork and flickers. */
 let lastMediaKey = "";
+let lastPositionSec = -1;
 
 /**
  * 6 s of 16-bit mono PCM with a ±10 LSB 250 Hz square (≈ -70 dBFS): inaudible, but not digital silence,
@@ -58,14 +59,24 @@ function keepAliveUrl() {
   return URL.createObjectURL(new Blob([view.buffer], { type: "audio/wav" }));
 }
 
-function publishCookTitle(leftSec: number, album: string, playing: boolean) {
+function publishCookClock(leftSec: number, album: string, playing: boolean) {
+  const watch = cookWatch;
   const title = formatTime(leftSec);
   const key = `${title}\0${album}\0${playing ? 1 : 0}`;
-  if (key === lastMediaKey) return;
-  lastMediaKey = key;
-  setMediaInfo(title, "Megg", album);
+  // Metadata only when the second (or album/playing) changes — artwork reload every
+  // timeupdate was what made the lock-screen widget flicker.
+  if (key !== lastMediaKey) {
+    lastMediaKey = key;
+    setMediaInfo(title, "Megg", album);
+  }
   const ms = mediaSession();
   if (ms) ms.playbackState = playing ? "playing" : "paused";
+  // Drive the scrubber from wall-clock cook progress (not the 6s silent loop).
+  if (watch && leftSec !== lastPositionSec) {
+    lastPositionSec = leftSec;
+    const elapsed = Math.min(watch.totalSeconds, Math.max(0, watch.totalSeconds - leftSec));
+    setMediaPosition(watch.totalSeconds, elapsed, playing);
+  }
 }
 
 function onKeepAliveTick() {
@@ -73,9 +84,7 @@ function onKeepAliveTick() {
   if (!watch || watch.done || mode !== "silent") return;
   const leftMs = Math.max(0, watch.endAt - Date.now());
   watch.onTick(leftMs);
-  // Title carries remaining time. Do NOT setPositionState against the 6s keep-alive
-  // file — iOS fights that and the scrubber flickers / freezes.
-  publishCookTitle(Math.ceil(leftMs / 1000), watch.album, true);
+  publishCookClock(Math.ceil(leftMs / 1000), watch.album, true);
   if (leftMs <= 0) {
     watch.done = true;
     // Flip mode before the async chime load so further ticks can't re-enter.
@@ -112,16 +121,24 @@ export function startKeepAlive() {
   resumeKeepAlive();
 }
 
-export function resumeKeepAlive() {
-  void keepAlive?.play().catch(() => {});
-  const ms = mediaSession();
-  if (ms && mode === "silent") ms.playbackState = "playing";
-}
-
 export function pauseKeepAlive() {
   keepAlive?.pause();
   const ms = mediaSession();
   if (ms) ms.playbackState = "paused";
+  if (cookWatch && !cookWatch.done) {
+    const leftSec = Math.ceil(Math.max(0, cookWatch.endAt - Date.now()) / 1000);
+    publishCookClock(leftSec, cookWatch.album, false);
+  }
+}
+
+export function resumeKeepAlive() {
+  void keepAlive?.play().catch(() => {});
+  const ms = mediaSession();
+  if (ms && mode === "silent") ms.playbackState = "playing";
+  if (cookWatch && !cookWatch.done && mode === "silent") {
+    const leftSec = Math.ceil(Math.max(0, cookWatch.endAt - Date.now()) / 1000);
+    publishCookClock(leftSec, cookWatch.album, true);
+  }
 }
 
 export function stopKeepAlive() {
@@ -151,7 +168,7 @@ export function watchCookClock(opts: {
 }) {
   cookWatch = { ...opts, done: false };
   lastMediaKey = "";
-  clearMediaPosition();
+  lastPositionSec = -1;
   onKeepAliveTick();
   return () => {
     if (cookWatch?.onDone === opts.onDone) cookWatch = null;
@@ -163,7 +180,7 @@ export function updateCookAlbum(album: string) {
   if (!cookWatch) return;
   cookWatch.album = album;
   const leftSec = Math.ceil(Math.max(0, cookWatch.endAt - Date.now()) / 1000);
-  publishCookTitle(leftSec, album, true);
+  publishCookClock(leftSec, album, true);
 }
 
 /** Swap the keep-alive element to the looping chime — audible while the phone is locked. */
