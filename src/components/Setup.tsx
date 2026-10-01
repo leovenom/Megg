@@ -61,7 +61,7 @@ export function Setup({
                     "translate3d(0,0,0) scale(1.06, 0.92)",
                   ],
                 }}
-                transition={{ duration: 0.8, repeat: 2, ease: "easeInOut", times: [0, 0.15, 0.5, 0.88, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.5, 0.88, 1] }}
               >
                 <Egg size={60} face />
               </motion.span>
