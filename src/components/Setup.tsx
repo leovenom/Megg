@@ -12,7 +12,7 @@ import {
 } from "@/lib/eggs";
 import { LANGS, climateIndex, rich, useI18n, useT } from "@/lib/i18n";
 import { Egg, HalfEgg } from "./Egg";
-import { LogoEgg, logoEggLeftInset } from "./LogoEgg";
+import { LogoEgg } from "./LogoEgg";
 import { Credit } from "./Credit";
 
 export type Choice = {
@@ -48,13 +48,13 @@ export function Setup({
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(13rem+env(safe-area-inset-bottom))] pt-8">
       <header className="mb-8 flex items-end gap-3 overflow-visible">
-        {/* Layout width = egg silhouette only; peel pad overflows so h1/p keep px-5 alignment with h2s. */}
+        {/* 20px = px-5 / padding-inline: calc(var(--spacing) * 5) */}
         <span
           className="relative block shrink-0 self-end overflow-visible"
           style={{
             width: 40,
             height: 40 * 1.3,
-            marginLeft: -logoEggLeftInset(40),
+            marginLeft: -20,
           }}
         >
           <span className="absolute bottom-0 left-0 overflow-visible">
