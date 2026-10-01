@@ -47,12 +47,12 @@ export function Setup({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(13rem+env(safe-area-inset-bottom))] pt-8">
-      <header className="mb-8 flex items-center gap-3 overflow-visible">
-        {/* Native size (no scale-50): peel padding lives inside the SVG so overflow-x-hidden won't clip. */}
-        <span className="relative block h-[39px] w-[52px] shrink-0 overflow-visible">
-          <LogoEgg size={30} />
+      <header className="mb-8 flex items-end gap-3 overflow-visible">
+        {/* Bottom-aligned with the tagline; padded SVG width so peel doesn't clip. */}
+        <span className="relative block shrink-0 overflow-visible self-end">
+          <LogoEgg size={40} />
         </span>
-        <div>
+        <div className="min-w-0">
           <h1 className="font-display text-3xl leading-none tracking-tight">Megg</h1>
           <p className="mt-1 text-sm text-fg-muted">{t.tagline}</p>
         </div>
