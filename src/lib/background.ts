@@ -14,7 +14,7 @@ import { cancelAlarm, getChimeUrl } from "@/lib/sound";
 const DONE_TAG = "megg-done";
 /** JPEG (no alpha) + cache bust — PNG corners were showing as white on the lock screen. */
 const ARTWORK: MediaImage[] = [
-  { src: `${SITE_URL}/icons/now-playing.jpg?v=4`, sizes: "512x512", type: "image/jpeg" },
+  { src: `${SITE_URL}/icons/now-playing.jpg?v=5`, sizes: "512x512", type: "image/jpeg" },
 ];
 
 let keepAlive: HTMLAudioElement | null = null;
