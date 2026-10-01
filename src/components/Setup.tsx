@@ -47,9 +47,10 @@ export function Setup({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[calc(13rem+env(safe-area-inset-bottom))] pt-8">
-      <header className="mb-8 flex items-center gap-3">
-        <span className="relative block h-[39px] w-[30px] shrink-0 overflow-visible">
-          <span className="absolute left-0 top-0 origin-top-left scale-50 overflow-visible">
+      <header className="mb-8 flex items-center gap-3 overflow-visible">
+        {/* Wide enough for peel halves (±x) — main has overflow-x-hidden and would clip a 30px slot. */}
+        <span className="relative block h-[44px] w-[52px] shrink-0 overflow-visible">
+          <span className="absolute left-1/2 top-0 origin-top -translate-x-1/2 scale-50 overflow-visible">
             <LogoEgg size={60} />
           </span>
         </span>

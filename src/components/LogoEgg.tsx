@@ -163,6 +163,7 @@ export function LogoEgg({ size = 60 }: { size?: number }) {
           transformPerspective: 520,
           transformStyle: "preserve-3d",
           willChange: "transform",
+          overflow: "visible",
         }}
       >
         <EggArt size={size} phase={phase} />
@@ -231,7 +232,7 @@ function EggArt({ size, phase }: { size: number; phase: Phase }) {
           <motion.g
             clipPath={`url(#${id}-leftCrack)`}
             initial={{ x: 0, rotate: 0 }}
-            animate={{ x: -16, rotate: -10 }}
+            animate={{ x: -12, rotate: -8 }}
             transition={{ duration: 0.9, ease: [0.23, 1, 0.32, 1] }}
             style={{ transformOrigin: "50px 70px" }}
           >
@@ -242,7 +243,7 @@ function EggArt({ size, phase }: { size: number; phase: Phase }) {
           <motion.g
             clipPath={`url(#${id}-rightCrack)`}
             initial={{ x: 0, rotate: 0 }}
-            animate={{ x: 16, rotate: 10 }}
+            animate={{ x: 12, rotate: 8 }}
             transition={{ duration: 0.9, ease: [0.23, 1, 0.32, 1], delay: 0.05 }}
             style={{ transformOrigin: "50px 70px" }}
           >
