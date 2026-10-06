@@ -36,12 +36,15 @@ let cookWatch: {
 let lastMediaKey = "";
 
 /**
- * Near-silent PCM (±10 LSB @ 250 Hz). Not digital silence (browsers may ignore that).
+ * Keep-alive PCM for iOS Now Playing. Not digital silence (Safari may pause that),
+ * but also not a continuous tone — a 250 Hz square wave at ±10 was audible as a buzz
+ * on iPhone. Sparse ±1 LSB ticks every ~2s stay inaudible while keeping the stream "live".
  * Duration is the cook length so the lock-screen scrubber matches wall-clock progress.
  */
 function silentWavUrl(seconds: number) {
   const rate = 8000;
   const samples = Math.max(rate * 5, Math.round(seconds * rate)); // ≥5s for Chrome Now Playing
+  const tickEvery = rate * 2; // one sample every 2s
   const view = new DataView(new ArrayBuffer(44 + samples * 2));
   const str = (at: number, s: string) => [...s].forEach((c, i) => view.setUint8(at + i, c.charCodeAt(0)));
   str(0, "RIFF");
@@ -57,7 +60,9 @@ function silentWavUrl(seconds: number) {
   view.setUint16(34, 16, true);
   str(36, "data");
   view.setUint32(40, samples * 2, true);
-  for (let i = 0; i < samples; i++) view.setInt16(44 + i * 2, (i >> 4) & 1 ? 10 : -10, true);
+  for (let i = 0; i < samples; i++) {
+    view.setInt16(44 + i * 2, i % tickEvery === 0 ? 1 : 0, true);
+  }
   return URL.createObjectURL(new Blob([view.buffer], { type: "audio/wav" }));
 }
 
